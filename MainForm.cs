@@ -13,7 +13,12 @@ namespace GradeManagementSystem;
 
 public partial class MainForm : Form
 {
-    private bool _searching;
+    private void importButton_Click(object sender, EventArgs e)
+    {
+        // TODO
+
+        throw new NotImplementedException();
+    }
 
     private static readonly Dictionary<string, int> Columns = new()
     {
@@ -41,9 +46,9 @@ public partial class MainForm : Form
     private void CreateTextColumn(string headerText)
     {
         DataGridViewTextBoxColumn column = new();
-        column.HeaderText = headerText;
         column.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
         column.ReadOnly = true;
+        column.HeaderText = headerText;
         dataGrid.Columns.Add(column);
     }
 
@@ -52,25 +57,25 @@ public partial class MainForm : Form
         DataGridViewButtonColumn column = new();
         column.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
         column.ReadOnly = true;
-        column.Text = buttonText;
         column.UseColumnTextForButtonValue = true;
+        column.Text = buttonText;
         dataGrid.Columns.Add(column);
     }
 
+    private static bool IsValidStudentID(int id) => id > 0;
+
+    private bool _searching;
+
     private void Search()
     {
-        if (_searching)
+        if (_searching || !int.TryParse(searchBox.Text, out int id) || !IsValidStudentID(id))
         {
-            return;
-        }
-
-        if (!int.TryParse(searchBox.Text, out int id) || id < 1)
-        {
-            MessageBox.Show(@"Invalid student ID!", @"ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
 
         _searching = true;
+        searchBox.Enabled = false;
+        searchButton.Enabled = false;
         resultsLabel.Text = $@"Grabbing information for student #{id} . . .";
         addButton.Enabled = false;
         dataGrid.Rows.Clear();
@@ -97,12 +102,23 @@ public partial class MainForm : Form
         }
 
         _searching = false;
+        searchBox.Enabled = true;
+        searchButton.Enabled = true;
         resultsLabel.Text = $@"Selected {(student.Existing ? "existing" : "new")} student #{student.ID}" +
                             $@"{(student.Name is not null ? $" ({student.Name})" : "")}";
         addButton.Enabled = true;
     }
 
-    private void searchButton_Click(object sender, EventArgs e) => Search();
+    private void searchBox_TextChanged(object sender, EventArgs e)
+    {
+        if (!int.TryParse(searchBox.Text, out int id) || !IsValidStudentID(id))
+        {
+            searchButton.Enabled = false;
+            return;
+        }
+
+        searchButton.Enabled = true;
+    }
 
     private void searchBox_KeyPress(object sender, KeyPressEventArgs e)
     {
@@ -115,16 +131,12 @@ public partial class MainForm : Form
         Search();
     }
 
-    private void importButton_Click(object sender, EventArgs e)
-    {
-        throw new NotImplementedException();
-    }
+    private void searchButton_Click(object sender, EventArgs e) => Search();
 
     private void addButton_Click(object sender, EventArgs e)
     {
         if (dataGrid.Tag is not Student student)
         {
-            addButton.Enabled = false;
             return;
         }
 

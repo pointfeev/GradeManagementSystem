@@ -48,6 +48,7 @@ partial class MainForm
         searchBox.PlaceholderText = "Student ID";
         searchBox.Size = new System.Drawing.Size(100, 25);
         searchBox.TabIndex = 0;
+        searchBox.TextChanged += searchBox_TextChanged;
         searchBox.KeyPress += searchBox_KeyPress;
         // 
         // importButton
@@ -68,6 +69,7 @@ partial class MainForm
         // 
         searchButton.AutoSize = true;
         searchButton.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+        searchButton.Enabled = false;
         searchButton.Location = new System.Drawing.Point(118, 12);
         searchButton.Name = "searchButton";
         searchButton.Padding = new System.Windows.Forms.Padding(3, 1, 3, 1);
