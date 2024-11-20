@@ -63,7 +63,9 @@ public class Student
     /// Also commits the linked <see cref="GradeManagementSystem.Student.Grades"/> instances,
     /// see <see cref="GradeManagementSystem.Grade.Commit"/>.
     /// </summary>
-    public void Commit()
+    ///
+    /// <returns>Boolean indicating if all the commits were successful</returns>
+    public bool Commit()
     {
         MySqlCommand command = new($"""
                                     INSERT INTO {Table} (id, name, gpa)
@@ -75,14 +77,14 @@ public class Student
         command.Parameters.AddWithValue("@id", ID);
         command.Parameters.AddWithValue("@name", Name);
         command.Parameters.AddWithValue("@gpa", GPA);
-        command.Execute();
+        if (!command.Execute())
+        {
+            return false;
+        }
 
         Existing = true;
 
-        foreach (Grade grade in Grades)
-        {
-            grade.Commit();
-        }
+        return Grades.Aggregate(true, (current, grade) => current && grade.Commit());
     }
 
     /// <summary>

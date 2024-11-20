@@ -16,7 +16,9 @@ public class Course
     /// Commits the current <see cref="GradeManagementSystem.Course"/> instance data to the database,
     /// replacing the existing row if it exists.
     /// </summary>
-    public void Commit()
+    ///
+    /// <returns>Boolean indicating if the commit was successful</returns>
+    public bool Commit()
     {
         MySqlCommand command = new($"""
                                     INSERT INTO {Table} (crn, prefix, number, year, semester)
@@ -32,7 +34,7 @@ public class Course
         command.Parameters.AddWithValue("@number", Number);
         command.Parameters.AddWithValue("@year", Year);
         command.Parameters.AddWithValue("@semester", Semester);
-        command.Execute();
+        return command.Execute();
     }
 
     /// <summary>
@@ -42,10 +44,12 @@ public class Course
     /// Due to foreign key constraints, will only delete if no <see cref="GradeManagementSystem.Grade"/> instances
     /// reference the <see cref="GradeManagementSystem.Course.CRN"/> in the database; this is intended behavior.
     /// </summary>
-    public void Delete()
+    ///
+    /// <returns>Boolean indicating if the deletion was successful</returns>
+    public bool Delete()
     {
         MySqlCommand command = new($"DELETE FROM {Table} WHERE crn=@crn;");
         command.Parameters.AddWithValue("@crn", CRN);
-        command.Execute();
+        return command.Execute();
     }
 }

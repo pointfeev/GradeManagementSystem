@@ -23,9 +23,14 @@ public class Grade
     /// Also commits the linked <see cref="GradeManagementSystem.Grade.Course"/> instance,
     /// see <see cref="GradeManagementSystem.Course.Commit"/>.
     /// </summary>
-    public void Commit()
+    ///
+    /// <returns>Boolean indicating if all the commits were successful</returns>
+    public bool Commit()
     {
-        Course.Commit();
+        if (!Course.Commit())
+        {
+            return false;
+        }
 
         // TODO: edit this query to change existing rows with matching student_id and course_crn if they exist instead
         MySqlCommand command = new($"""
@@ -39,7 +44,7 @@ public class Grade
         command.Parameters.AddWithValue("@student_id", Student.ID);
         command.Parameters.AddWithValue("@letter", Letter);
         command.Parameters.AddWithValue("@course_crn", Course.CRN);
-        command.Execute();
+        return command.Execute();
     }
 
     /// <summary>
@@ -49,12 +54,12 @@ public class Grade
     /// Also deletes the linked <see cref="GradeManagementSystem.Course"/> instance,
     /// see <see cref="GradeManagementSystem.Course.Delete"/>.
     /// </summary>
-    public void Delete()
+    ///
+    /// <returns>Boolean indicating if all the deletions were successful</returns>
+    public bool Delete()
     {
         MySqlCommand command = new($"DELETE FROM {Table} WHERE id=@id;");
         command.Parameters.AddWithValue("@id", ID);
-        command.Execute();
-
-        Course.Delete();
+        return command.Execute() && Course.Delete();
     }
 }

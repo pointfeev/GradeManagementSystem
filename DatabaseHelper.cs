@@ -17,8 +17,11 @@ public static class DatabaseHelper
     /// If a callback is passed, a <see cref="MySql.Data.MySqlClient.MySqlDataReader"/>
     /// will be executed and passed to the callback.
     /// </summary>
-    public static void Execute(this MySqlCommand command, Action<MySqlDataReader>? callback = null)
+    ///
+    /// <returns>Boolean indicating if the command ran successfully</returns>
+    public static bool Execute(this MySqlCommand command, Action<MySqlDataReader>? callback = null)
     {
+        bool success = false;
         MySqlConnection connection = new(ConnectionString);
         try
         {
@@ -34,6 +37,8 @@ public static class DatabaseHelper
             {
                 command.ExecuteNonQuery();
             }
+
+            success = true;
         }
         catch (MySqlException ex)
         {
@@ -41,5 +46,6 @@ public static class DatabaseHelper
         }
 
         connection.Close();
+        return success;
     }
 }
