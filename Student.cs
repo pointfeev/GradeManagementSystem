@@ -71,8 +71,8 @@ public class Student
                                     INSERT INTO {Table} (id, name, gpa)
                                     VALUES (@id, @name, @gpa)
                                     ON DUPLICATE KEY UPDATE
-                                        name=VALUES(name),
-                                        gpa=VALUES(gpa);
+                                        name = VALUES(name),
+                                        gpa = VALUES(gpa);
                                     """);
         command.Parameters.AddWithValue("@id", ID);
         command.Parameters.AddWithValue("@name", Name);

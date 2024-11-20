@@ -24,10 +24,10 @@ public class Course
                                     INSERT INTO {Table} (crn, prefix, number, year, semester)
                                     VALUES (@crn, @prefix, @number, @year, @semester)
                                     ON DUPLICATE KEY UPDATE
-                                        prefix=VALUES(prefix),
-                                        number=VALUES(number),
-                                        year=VALUES(year),
-                                        semester=VALUES(semester);
+                                        prefix = VALUES(prefix),
+                                        number = VALUES(number),
+                                        year = VALUES(year),
+                                        semester = VALUES(semester);
                                     """);
         command.Parameters.AddWithValue("@crn", CRN);
         command.Parameters.AddWithValue("@prefix", Prefix);
@@ -48,7 +48,7 @@ public class Course
     /// <returns>Boolean indicating if the deletion was successful</returns>
     public bool Delete()
     {
-        MySqlCommand command = new($"DELETE FROM {Table} WHERE crn=@crn;");
+        MySqlCommand command = new($"DELETE FROM {Table} WHERE crn = @crn;");
         command.Parameters.AddWithValue("@crn", CRN);
         return command.Execute();
     }

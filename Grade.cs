@@ -34,13 +34,14 @@ public class Grade
 
         // TODO: edit this query to change existing rows with matching student_id and course_crn if they exist instead
         MySqlCommand command = new($"""
-                                    INSERT INTO {Table} (student_id, letter, course_crn)
-                                    VALUES (@student_id, @letter, @course_crn)
+                                    INSERT INTO {Table} (id, student_id, letter, course_crn)
+                                    VALUES (@id, @student_id, @letter, @course_crn)
                                     ON DUPLICATE KEY UPDATE
-                                        student_id=VALUES(student_id),
-                                        letter=VALUES(letter),
-                                        course_crn=VALUES(course_crn);
+                                        student_id = VALUES(student_id),
+                                        letter = VALUES(letter),
+                                        course_crn = VALUES(course_crn);
                                     """);
+        command.Parameters.AddWithValue("@id", ID);
         command.Parameters.AddWithValue("@student_id", Student.ID);
         command.Parameters.AddWithValue("@letter", Letter);
         command.Parameters.AddWithValue("@course_crn", Course.CRN);
@@ -58,7 +59,7 @@ public class Grade
     /// <returns>Boolean indicating if all the deletions were successful</returns>
     public bool Delete()
     {
-        MySqlCommand command = new($"DELETE FROM {Table} WHERE id=@id;");
+        MySqlCommand command = new($"DELETE FROM {Table} WHERE id = @id;");
         command.Parameters.AddWithValue("@id", ID);
         if (!command.Execute() || !Course.Delete())
         {
