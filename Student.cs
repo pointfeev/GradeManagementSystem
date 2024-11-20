@@ -63,4 +63,46 @@ public class Student
         });
         return grades;
     }
+
+    public void CalculateGPA()
+    {
+        // TODO
+
+        throw new NotImplementedException();
+    }
+
+    public void AddGrade()
+    {
+        // TODO
+
+        throw new NotImplementedException();
+    }
+
+    public void EditGrade(int id)
+    {
+        // TODO
+
+        throw new NotImplementedException();
+    }
+
+    public void DeleteGrade(int id)
+    {
+        // TODO
+
+        throw new NotImplementedException();
+    }
+
+    public void ImportGrades()
+    {
+        // TODO
+
+        throw new NotImplementedException();
+    }
+
+    public void PrintTranscript()
+    {
+        // TODO
+
+        throw new NotImplementedException();
+    }
 }
