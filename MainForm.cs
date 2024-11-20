@@ -26,25 +26,16 @@ public partial class MainForm : Form
         throw new NotImplementedException();
     }
 
-    private static readonly Dictionary<string, int> Columns = new()
-    {
-        ["CRN"] = 0,
-        ["Prefix"] = 1,
-        ["Number"] = 2,
-        ["Year"] = 3,
-        ["Semester"] = 4,
-        ["Grade"] = 5
-    };
-
     public MainForm()
     {
         InitializeComponent();
 
-        foreach ((string text, int _) in Columns)
-        {
-            CreateTextColumn(text);
-        }
-
+        CreateTextColumn("CRN");
+        CreateTextColumn("Prefix");
+        CreateTextColumn("Number");
+        CreateTextColumn("Year");
+        CreateTextColumn("Semester");
+        CreateTextColumn("Grade");
         CreateButtonColumn("Edit");
         CreateButtonColumn("Delete");
     }
@@ -54,6 +45,7 @@ public partial class MainForm : Form
         DataGridViewTextBoxColumn column = new();
         column.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
         column.ReadOnly = true;
+        column.Name = headerText;
         column.HeaderText = headerText;
         dataGrid.Columns.Add(column);
     }
@@ -64,6 +56,7 @@ public partial class MainForm : Form
         column.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
         column.ReadOnly = true;
         column.UseColumnTextForButtonValue = true;
+        column.Name = buttonText;
         column.Text = buttonText;
         dataGrid.Columns.Add(column);
     }
@@ -96,12 +89,12 @@ public partial class MainForm : Form
                 row.Tag = grade;
 
                 row.CreateCells(dataGrid);
-                row.Cells[Columns["Grade"]].Value = grade.Letter;
-                row.Cells[Columns["CRN"]].Value = grade.Course.CRN;
-                row.Cells[Columns["Prefix"]].Value = grade.Course.Prefix;
-                row.Cells[Columns["Number"]].Value = grade.Course.Number;
-                row.Cells[Columns["Year"]].Value = grade.Course.Year;
-                row.Cells[Columns["Semester"]].Value = grade.Course.Semester;
+                row.Cells[dataGrid.Columns["Grade"]!.Index].Value = grade.Letter;
+                row.Cells[dataGrid.Columns["CRN"]!.Index].Value = grade.Course.CRN;
+                row.Cells[dataGrid.Columns["Prefix"]!.Index].Value = grade.Course.Prefix;
+                row.Cells[dataGrid.Columns["Number"]!.Index].Value = grade.Course.Number;
+                row.Cells[dataGrid.Columns["Year"]!.Index].Value = grade.Course.Year;
+                row.Cells[dataGrid.Columns["Semester"]!.Index].Value = grade.Course.Semester;
 
                 dataGrid.Rows.Add(row);
             }
