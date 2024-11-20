@@ -11,6 +11,12 @@ public static class DatabaseHelper
         "user=student;" +
         "password=Maroon@21?;";
 
+    /// <summary>
+    /// Executes the passed <see cref="MySql.Data.MySqlClient.MySqlCommand"/>.
+    ///
+    /// If a callback is passed, a <see cref="MySql.Data.MySqlClient.MySqlDataReader"/>
+    /// will be executed and passed to the callback.
+    /// </summary>
     public static void Execute(this MySqlCommand command, Action<MySqlDataReader>? callback = null)
     {
         MySqlConnection connection = new(ConnectionString);

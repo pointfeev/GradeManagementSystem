@@ -10,8 +10,32 @@ public class Student
     public string? Name;
     public double? GPA;
 
-    public bool Existing; // TODO: make sure this gets set to true when committed
+    /// <summary>
+    /// This array is intended to be used for committing new <see cref="GradeManagementSystem.Grade"/>
+    /// and <see cref="GradeManagementSystem.Course"/> instances to the database
+    /// with <see cref="GradeManagementSystem.Student.Commit"/>.
+    ///
+    /// Use <see cref="GradeManagementSystem.Student.GetGrades"/> to get a list of grades
+    /// freshly populated from the database.
+    /// </summary>
+    public readonly List<Grade> Grades = [];
 
+    /// <summary>
+    /// Does the current <see cref="GradeManagementSystem.Student"/> instance
+    /// <see cref="GradeManagementSystem.Student.ID"/> exist in the database.
+    /// </summary>
+    public bool Existing;
+
+    /// <summary>
+    /// Creates a new <see cref="GradeManagementSystem.Student"/> instance
+    /// from the passed <see cref="GradeManagementSystem.Student.ID"/>,
+    /// and populates the <see cref="GradeManagementSystem.Student.Name"/>
+    /// and <see cref="GradeManagementSystem.Student.GPA"/>
+    /// fields from the database if the student exists in the database.
+    ///
+    /// If the student exists in the database, <see cref="GradeManagementSystem.Student.Existing"/>
+    /// will be set to <c>true</c>, otherwise it will be <c>false</c>.
+    /// </summary>
     public Student(int id)
     {
         ID = id;
@@ -32,9 +56,33 @@ public class Student
         });
     }
 
+    /// <summary>
+    /// Commits the current <see cref="GradeManagementSystem.Student"/> instance data to the database,
+    /// replacing the existing row if it exists.
+    ///
+    /// Also commits the linked <see cref="GradeManagementSystem.Student.Grades"/> instances,
+    /// see <see cref="GradeManagementSystem.Grade.Commit"/>.
+    /// </summary>
+    public void Commit()
+    {
+        // TODO: commit the current instance data to the database here, replacing existing data
+        throw new NotImplementedException();
+        Existing = true;
+
+        foreach (Grade grade in Grades)
+        {
+            grade.Commit();
+        }
+    }
+
+    /// <summary>
+    /// Clears the <see cref="GradeManagementSystem.Student.Grades"/> list and populates it from the database.
+    /// </summary>
+    ///
+    /// <returns>The populated <see cref="GradeManagementSystem.Student.Grades"/> list.</returns>
     public List<Grade> GetGrades()
     {
-        List<Grade> grades = [];
+        Grades.Clear();
         MySqlCommand command = new($"""
                                     SELECT id, letter, crn, prefix, number, year, semester
                                     FROM {Grade.Table} JOIN {Course.Table} ON course_crn = crn
@@ -58,34 +106,13 @@ public class Student
                         Semester = reader.GetString("semester")
                     }
                 };
-                grades.Add(grade);
+                Grades.Add(grade);
             }
         });
-        return grades;
+        return Grades;
     }
 
     public void CalculateGPA()
-    {
-        // TODO
-
-        throw new NotImplementedException();
-    }
-
-    public void AddGrade()
-    {
-        // TODO
-
-        throw new NotImplementedException();
-    }
-
-    public void EditGrade(int id)
-    {
-        // TODO
-
-        throw new NotImplementedException();
-    }
-
-    public void DeleteGrade(int id)
     {
         // TODO
 
