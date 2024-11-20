@@ -89,7 +89,9 @@ public partial class MainForm : Form
                 row.Tag = grade;
 
                 row.CreateCells(dataGrid);
+
                 row.Cells[dataGrid.Columns["Grade"]!.Index].Value = grade.Letter;
+
                 row.Cells[dataGrid.Columns["CRN"]!.Index].Value = grade.Course.CRN;
                 row.Cells[dataGrid.Columns["Prefix"]!.Index].Value = grade.Course.Prefix;
                 row.Cells[dataGrid.Columns["Number"]!.Index].Value = grade.Course.Number;
@@ -148,7 +150,28 @@ public partial class MainForm : Form
         }
 
         // TODO
-
         throw new NotImplementedException();
+    }
+
+    private void dataGrid_CellClick(object sender, DataGridViewCellEventArgs e)
+    {
+        if (e.RowIndex < 0)
+        {
+            return;
+        }
+
+        if (e.ColumnIndex == dataGrid.Columns["Edit"]!.Index)
+        {
+            // TODO
+            throw new NotImplementedException();
+        }
+        else if (e.ColumnIndex == dataGrid.Columns["Delete"]!.Index)
+        {
+            DataGridViewRow row = dataGrid.Rows[e.RowIndex];
+            if (row.Tag is not Grade grade || grade.Delete())
+            {
+                dataGrid.Rows.RemoveAt(e.RowIndex);
+            }
+        }
     }
 }

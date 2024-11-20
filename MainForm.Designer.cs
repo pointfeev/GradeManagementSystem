@@ -122,6 +122,7 @@ partial class MainForm
         dataGrid.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
         dataGrid.Size = new System.Drawing.Size(560, 371);
         dataGrid.TabIndex = 5;
+        dataGrid.CellClick += dataGrid_CellClick;
         // 
         // resultsLabel
         // 
