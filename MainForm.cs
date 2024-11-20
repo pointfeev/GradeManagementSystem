@@ -74,7 +74,7 @@ public partial class MainForm : Form
         }
 
         _searching = true;
-        searchBox.Enabled = false;
+        searchButton.Text = @"Refresh";
         searchButton.Enabled = false;
         resultsLabel.Text = $@"Grabbing information for student #{id} . . .";
         addButton.Enabled = false;
@@ -102,8 +102,6 @@ public partial class MainForm : Form
         }
 
         _searching = false;
-        searchBox.Enabled = true;
-        searchButton.Text = @"Refresh";
         searchButton.Enabled = true;
         resultsLabel.Text = $@"Selected {(student.Existing ? "existing" : "new")} student #{student.ID}" +
                             $@"{(student.Name is not null ? $" ({student.Name})" : "")}";
