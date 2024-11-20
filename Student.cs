@@ -65,8 +65,18 @@ public class Student
     /// </summary>
     public void Commit()
     {
-        // TODO: commit the current instance data to the database here, replacing existing data
-        throw new NotImplementedException();
+        MySqlCommand command = new($"""
+                                    INSERT INTO {Table} (id, name, gpa)
+                                    VALUES (@id, @name, @gpa)
+                                    ON DUPLICATE KEY UPDATE
+                                        name=VALUES(name),
+                                        gpa=VALUES(gpa);
+                                    """);
+        command.Parameters.AddWithValue("@id", ID);
+        command.Parameters.AddWithValue("@name", Name);
+        command.Parameters.AddWithValue("@gpa", GPA);
+        command.Execute();
+
         Existing = true;
 
         foreach (Grade grade in Grades)
@@ -95,6 +105,7 @@ public class Student
             {
                 Grade grade = new()
                 {
+                    Student = this,
                     ID = reader.GetInt32("id"),
                     Letter = reader.GetChar("letter"),
                     Course = new()
@@ -112,6 +123,9 @@ public class Student
         return Grades;
     }
 
+    /// <summary>
+    /// TODO
+    /// </summary>
     public void CalculateGPA()
     {
         // TODO
@@ -119,6 +133,9 @@ public class Student
         throw new NotImplementedException();
     }
 
+    /// <summary>
+    /// TODO
+    /// </summary>
     public void ImportGrades()
     {
         // TODO
@@ -126,6 +143,9 @@ public class Student
         throw new NotImplementedException();
     }
 
+    /// <summary>
+    /// TODO
+    /// </summary>
     public void PrintTranscript()
     {
         // TODO

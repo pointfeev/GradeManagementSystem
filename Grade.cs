@@ -1,12 +1,20 @@
-﻿namespace GradeManagementSystem;
+﻿using MySql.Data.MySqlClient;
+
+namespace GradeManagementSystem;
 
 public class Grade
 {
     public const string Table = "zma_grade";
 
+    /// <summary>
+    /// <see cref="GradeManagementSystem.Grade.ID"/> is auto-incremented in the database,
+    /// so this field is not required unless editing or deleting.
+    /// </summary>
     public int ID;
-    public char Letter;
-    public Course Course;
+
+    public required Student Student;
+    public required char Letter;
+    public required Course Course;
 
     /// <summary>
     /// Commits the current <see cref="GradeManagementSystem.Grade"/> instance data to the database,
@@ -19,8 +27,19 @@ public class Grade
     {
         Course.Commit();
 
-        // TODO: commit the current instance data to the database here, replacing existing data
-        throw new NotImplementedException();
+        // TODO: edit this query to change existing rows with matching student_id and course_crn if they exist instead
+        MySqlCommand command = new($"""
+                                    INSERT INTO {Table} (student_id, letter, course_crn)
+                                    VALUES (@student_id, @letter, @course_crn)
+                                    ON DUPLICATE KEY UPDATE
+                                        student_id=VALUES(student_id),
+                                        letter=VALUES(letter),
+                                        course_crn=VALUES(course_crn);
+                                    """);
+        command.Parameters.AddWithValue("@student_id", Student.ID);
+        command.Parameters.AddWithValue("@letter", Letter);
+        command.Parameters.AddWithValue("@course_crn", Course.CRN);
+        command.Execute();
     }
 
     /// <summary>
@@ -32,8 +51,9 @@ public class Grade
     /// </summary>
     public void Delete()
     {
-        // TODO: delete the current instance ID from the database here
-        throw new NotImplementedException();
+        MySqlCommand command = new($"DELETE FROM {Table} WHERE id=@id;");
+        command.Parameters.AddWithValue("@id", ID);
+        command.Execute();
 
         Course.Delete();
     }
