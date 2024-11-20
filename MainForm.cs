@@ -62,13 +62,13 @@ public partial class MainForm : Form
         dataGrid.Columns.Add(column);
     }
 
-    private static bool IsValidStudentID(int id) => id > 0;
+    private bool ValidateStudentID(out int id) => int.TryParse(searchBox.Text, out id) && id > 0;
 
     private bool _searching;
 
     private void Search()
     {
-        if (_searching || !int.TryParse(searchBox.Text, out int id) || !IsValidStudentID(id))
+        if (_searching || !ValidateStudentID(out int id))
         {
             return;
         }
@@ -103,6 +103,7 @@ public partial class MainForm : Form
 
         _searching = false;
         searchBox.Enabled = true;
+        searchButton.Text = @"Refresh";
         searchButton.Enabled = true;
         resultsLabel.Text = $@"Selected {(student.Existing ? "existing" : "new")} student #{student.ID}" +
                             $@"{(student.Name is not null ? $" ({student.Name})" : "")}";
@@ -111,13 +112,22 @@ public partial class MainForm : Form
 
     private void searchBox_TextChanged(object sender, EventArgs e)
     {
-        if (!int.TryParse(searchBox.Text, out int id) || !IsValidStudentID(id))
+        if (!ValidateStudentID(out int id))
         {
             searchButton.Enabled = false;
+            searchButton.Text = @"Search";
             return;
         }
 
         searchButton.Enabled = true;
+
+        if (dataGrid.Tag is Student student && student.ID == id)
+        {
+            searchButton.Text = @"Refresh";
+            return;
+        }
+
+        searchButton.Text = @"Search";
     }
 
     private void searchBox_KeyPress(object sender, KeyPressEventArgs e)
