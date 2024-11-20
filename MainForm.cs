@@ -15,8 +15,14 @@ public partial class MainForm : Form
 {
     private void importButton_Click(object sender, EventArgs e)
     {
-        // TODO
+        importDialog.InitialDirectory = Directory.GetCurrentDirectory();
+        if (importDialog.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
 
+        string folder = importDialog.SelectedPath;
+        // TODO
         throw new NotImplementedException();
     }
 

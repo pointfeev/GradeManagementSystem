@@ -37,6 +37,7 @@ partial class MainForm
         dataGrid = new System.Windows.Forms.DataGridView();
         resultsLabel = new System.Windows.Forms.Label();
         addButton = new System.Windows.Forms.Button();
+        importDialog = new System.Windows.Forms.FolderBrowserDialog();
         ((System.ComponentModel.ISupportInitialize)dataGrid).BeginInit();
         SuspendLayout();
         // 
@@ -167,6 +168,8 @@ partial class MainForm
         ResumeLayout(false);
         PerformLayout();
     }
+
+    private System.Windows.Forms.FolderBrowserDialog importDialog;
 
     private System.Windows.Forms.Button addButton;
 

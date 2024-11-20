@@ -136,16 +136,6 @@ public class Student
     /// <summary>
     /// TODO
     /// </summary>
-    public void ImportGrades()
-    {
-        // TODO
-
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// TODO
-    /// </summary>
     public void PrintTranscript()
     {
         // TODO
