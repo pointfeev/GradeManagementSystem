@@ -254,6 +254,7 @@ public partial class MainForm : Form
         searchButton.Enabled = false;
         resultsLabel.Text = $"""Importing grades in folder "{folderName}" . . .""";
         addButton.Enabled = false;
+        dataGrid.Enabled = false;
         dataGrid.Rows.Clear();
 
         bool search = dataGrid.Tag is Student student && ValidateStudentID(out int id) && id == student.ID;
@@ -264,6 +265,7 @@ public partial class MainForm : Form
         searchBox.Enabled = true;
         searchButton.Enabled = true;
         resultsLabel.Text = @"No student selected.";
+        dataGrid.Enabled = true;
 
         if (search)
         {
@@ -321,6 +323,7 @@ public partial class MainForm : Form
         searchButton.Enabled = false;
         resultsLabel.Text = $@"Grabbing information for student #{id} . . .";
         addButton.Enabled = false;
+        dataGrid.Enabled = false;
         dataGrid.Rows.Clear();
 
         Student student = new(id);
@@ -347,6 +350,7 @@ public partial class MainForm : Form
         resultsLabel.Text = $@"Selected {(student.Existing ? "existing" : "new")} student #{student.ID}" +
                             $@"{(student.Name is not null ? $" ({student.Name})" : "")}";
         addButton.Enabled = true;
+        dataGrid.Enabled = true;
     }
 
     private void searchBox_TextChanged(object sender, EventArgs e)
