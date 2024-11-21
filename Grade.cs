@@ -45,7 +45,6 @@ public class Grade
             return false;
         }
 
-        // TODO: edit this query to change existing rows with matching student_id and course_crn if they exist instead
         MySqlCommand command = new($"""
                                     INSERT INTO {Table} (id, student_id, letter, course_crn)
                                     VALUES (@id, @student_id, @letter, @course_crn)
