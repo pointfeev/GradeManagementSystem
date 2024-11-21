@@ -255,6 +255,8 @@ public partial class MainForm : Form
         resultsLabel.Text = $"""Importing grades in folder "{folderName}" . . .""";
         addButton.Enabled = false;
         dataGrid.Rows.Clear();
+
+        bool search = dataGrid.Tag is Student student && ValidateStudentID(out int id) && id == student.ID;
         dataGrid.Tag = null;
 
         await Task.Run(() => ImportGrades(importDialog.SelectedPath));
@@ -262,6 +264,11 @@ public partial class MainForm : Form
         searchBox.Enabled = true;
         searchButton.Enabled = true;
         resultsLabel.Text = @"No student selected.";
+
+        if (search)
+        {
+            await Task.Run(Search);
+        }
     }
 
     public MainForm()
