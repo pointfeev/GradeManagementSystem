@@ -120,12 +120,27 @@ public class Student
     }
 
     /// <summary>
-    /// TODO
+    /// Calculates the grade point average from the current <see cref="GradeManagementSystem.Student.Grades"/> list
+    /// and sets <see cref="GradeManagementSystem.Student.GPA"/> to the result.
     /// </summary>
     public void CalculateGPA()
     {
-        // TODO
-        throw new NotImplementedException();
+        double gradePoints = 0;
+        int gradeCount = 0;
+        foreach (Grade grade in Grades)
+        {
+            gradePoints += grade.Letter switch
+            {
+                'A' => 4.0,
+                'B' => 3.0,
+                'C' => 2.0,
+                'D' => 1.0,
+                _ => 0.0
+            };
+            gradeCount++;
+        }
+
+        GPA = gradeCount == 0 ? 0 : gradePoints / gradeCount;
     }
 
     /// <summary>
