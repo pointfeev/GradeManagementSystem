@@ -10,6 +10,12 @@ internal static class Program
     {
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
+        Application.ApplicationExit += ApplicationExit;
         Application.Run(new MainForm());
+    }
+
+    private static void ApplicationExit(object? sender, EventArgs e)
+    {
+        DatabaseHelper.Disconnect();
     }
 }

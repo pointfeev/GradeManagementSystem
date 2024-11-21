@@ -1,4 +1,5 @@
-﻿using MySql.Data.MySqlClient;
+﻿using System.Data;
+using MySql.Data.MySqlClient;
 
 namespace GradeManagementSystem;
 
@@ -11,6 +12,39 @@ public static class DatabaseHelper
         "user=student;" +
         "password=Maroon@21?;";
 
+    private static MySqlConnection? _connection;
+
+    public static bool Connect()
+    {
+        if (_connection?.State is ConnectionState.Open)
+        {
+            return true;
+        }
+
+        Disconnect();
+
+        bool success = true;
+        _connection = new(ConnectionString);
+        try
+        {
+            _connection.Open();
+        }
+        catch (MySqlException ex)
+        {
+            MainForm.DisplayError(ex.Message);
+            success = false;
+        }
+
+        return success;
+    }
+
+    public static void Disconnect()
+    {
+        _connection?.Close();
+        _connection?.Dispose();
+        _connection = null;
+    }
+
     /// <summary>
     /// Executes the passed <see cref="MySql.Data.MySqlClient.MySqlCommand"/>.
     ///
@@ -21,12 +55,15 @@ public static class DatabaseHelper
     /// <returns>Boolean indicating if the command ran successfully</returns>
     public static bool Execute(this MySqlCommand command, Action<MySqlDataReader>? callback = null)
     {
-        bool success = false;
-        MySqlConnection connection = new(ConnectionString);
+        if (!Connect())
+        {
+            return false;
+        }
+
+        bool success = true;
         try
         {
-            connection.Open();
-            command.Connection = connection;
+            command.Connection = _connection;
             if (callback != null)
             {
                 MySqlDataReader reader = command.ExecuteReader();
@@ -37,15 +74,13 @@ public static class DatabaseHelper
             {
                 command.ExecuteNonQuery();
             }
-
-            success = true;
         }
         catch (MySqlException ex)
         {
             MainForm.DisplayError(ex.Message);
+            success = false;
         }
 
-        connection.Close();
         return success;
     }
 }
