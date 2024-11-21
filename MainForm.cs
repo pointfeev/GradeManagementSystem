@@ -172,6 +172,10 @@ public partial class MainForm : Form
                                 letterGrade = gradeString[0];
                                 break;
                             }
+                            default:
+                                DisplayError(
+                                    $"Invalid column \"{column}\" in file {fileName}");
+                                return;
                         }
                     }
 
