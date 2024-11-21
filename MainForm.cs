@@ -178,6 +178,11 @@ public partial class MainForm : Form
                         }
                     }
 
+                    if (rowIndex == 0)
+                    {
+                        continue;
+                    }
+
                     if (name is null)
                     {
                         DisplayError($"Missing column \"name\" in file {fileName}");
