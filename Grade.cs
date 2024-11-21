@@ -6,13 +6,26 @@ public class Grade
 {
     public const string Table = "zma_grade";
 
+    public static readonly HashSet<char> ValidLetters = ['A', 'B', 'C', 'D', 'F'];
+
     /// <summary>
     /// <see cref="GradeManagementSystem.Grade.ID"/> is auto-incremented in the database,
     /// so this field is not required unless editing or deleting.
     /// </summary>
     public int ID;
 
-    public required Student Student;
+    private readonly Student _student = null!;
+
+    public required Student Student
+    {
+        get => _student;
+        init
+        {
+            _student = value;
+            _student.Grades.Add(this);
+        }
+    }
+
     public required char Letter;
     public required Course Course;
 

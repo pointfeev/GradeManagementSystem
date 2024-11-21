@@ -42,7 +42,7 @@ public static class DatabaseHelper
         }
         catch (MySqlException ex)
         {
-            MessageBox.Show(ex.Message, @"ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MainForm.DisplayError(ex.Message);
         }
 
         connection.Close();

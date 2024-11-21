@@ -10,14 +10,6 @@ public class Student
     public string? Name;
     public double? GPA;
 
-    /// <summary>
-    /// This array is intended to be used for committing new <see cref="GradeManagementSystem.Grade"/>
-    /// and <see cref="GradeManagementSystem.Course"/> instances to the database
-    /// with <see cref="GradeManagementSystem.Student.Commit"/>.
-    ///
-    /// Use <see cref="GradeManagementSystem.Student.GetGrades"/> to get a list of grades
-    /// freshly populated from the database.
-    /// </summary>
     public readonly List<Grade> Grades = [];
 
     /// <summary>
@@ -29,8 +21,8 @@ public class Student
     /// <summary>
     /// Creates a new <see cref="GradeManagementSystem.Student"/> instance
     /// from the passed <see cref="GradeManagementSystem.Student.ID"/>,
-    /// and populates the <see cref="GradeManagementSystem.Student.Name"/>
-    /// and <see cref="GradeManagementSystem.Student.GPA"/>
+    /// and populates the <see cref="GradeManagementSystem.Student.Name"/>,
+    /// <see cref="GradeManagementSystem.Student.GPA"/> and <see cref="GradeManagementSystem.Student.Grades"/>
     /// fields from the database if the student exists in the database.
     ///
     /// If the student exists in the database, <see cref="GradeManagementSystem.Student.Existing"/>
@@ -42,18 +34,23 @@ public class Student
 
         MySqlCommand command = new($@"SELECT name, gpa FROM {Table} WHERE id = @id;");
         command.Parameters.AddWithValue("@id", ID);
-        command.Execute(reader =>
-        {
-            if (!reader.Read())
+        if (!command.Execute(reader =>
             {
-                return;
-            }
+                if (!reader.Read())
+                {
+                    return;
+                }
 
-            Existing = true;
+                Existing = true;
 
-            Name = reader.GetString("name");
-            GPA = reader.GetDouble("gpa");
-        });
+                Name = reader.GetString("name");
+                GPA = reader.GetDouble("gpa");
+            }) || !Existing)
+        {
+            return;
+        }
+
+        GetGrades();
     }
 
     /// <summary>
@@ -88,24 +85,23 @@ public class Student
     }
 
     /// <summary>
-    /// Clears the <see cref="GradeManagementSystem.Student.Grades"/> list and populates it from the database.
+    /// Populates the <see cref="GradeManagementSystem.Student.Grades"/> list from the database.
     /// </summary>
     ///
-    /// <returns>The populated <see cref="GradeManagementSystem.Student.Grades"/> list.</returns>
-    public List<Grade> GetGrades()
+    /// <returns>Boolean indicating if the get was successful</returns>
+    private bool GetGrades()
     {
-        Grades.Clear();
         MySqlCommand command = new($"""
                                     SELECT id, letter, crn, prefix, number, year, semester
                                     FROM {Grade.Table} JOIN {Course.Table} ON course_crn = crn
                                     WHERE student_id = @id;
                                     """);
         command.Parameters.AddWithValue("@id", ID);
-        command.Execute(reader =>
+        return command.Execute(reader =>
         {
             while (reader.Read())
             {
-                Grade grade = new()
+                _ = new Grade
                 {
                     Student = this,
                     ID = reader.GetInt32("id"),
@@ -119,10 +115,8 @@ public class Student
                         Semester = reader.GetString("semester")
                     }
                 };
-                Grades.Add(grade);
             }
         });
-        return Grades;
     }
 
     /// <summary>
@@ -131,7 +125,6 @@ public class Student
     public void CalculateGPA()
     {
         // TODO
-
         throw new NotImplementedException();
     }
 
@@ -141,7 +134,6 @@ public class Student
     public void PrintTranscript()
     {
         // TODO
-
         throw new NotImplementedException();
     }
 }
