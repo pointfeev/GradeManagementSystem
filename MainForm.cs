@@ -14,7 +14,7 @@ public partial class MainForm : Form
     private const string ImportFolderNameExample = "\n\nCorrect format example:\nGrades 2024 Fall";
     private const string ImportFileNameExample = "\n\nCorrect format example:\nCSC 440 2024 Fall 12345";
 
-    private void ImportGrades(string folder)
+    private static void ImportGrades(string folder)
     {
         string folderName = Path.GetFileName(folder);
         string[] folderParams = folderName.Split(' ');
@@ -229,13 +229,16 @@ public partial class MainForm : Form
                     }
 
                     student.CalculateGPA();
-                    student.Commit();
+                    if (!student.Commit())
+                    {
+                        return;
+                    }
                 }
             }
         }
     }
 
-    private void importButton_Click(object sender, EventArgs e)
+    private async void importButton_Click(object sender, EventArgs e)
     {
         importDialog.InitialDirectory = Directory.GetCurrentDirectory();
         if (importDialog.ShowDialog() != DialogResult.OK)
@@ -243,16 +246,20 @@ public partial class MainForm : Form
             return;
         }
 
-        searchBox.Text = string.Empty;
+        string folder = importDialog.SelectedPath;
+        string folderName = Path.GetFileName(folder);
+
+        searchBox.Enabled = false;
         searchButton.Text = @"Search";
         searchButton.Enabled = false;
-        resultsLabel.Text = @"Importing grades . . .";
+        resultsLabel.Text = $"""Importing grades in folder "{folderName}" . . .""";
         addButton.Enabled = false;
         dataGrid.Rows.Clear();
         dataGrid.Tag = null;
 
-        ImportGrades(importDialog.SelectedPath);
+        await Task.Run(() => ImportGrades(importDialog.SelectedPath));
 
+        searchBox.Enabled = true;
         searchButton.Enabled = true;
         resultsLabel.Text = @"No student selected.";
     }
@@ -294,7 +301,7 @@ public partial class MainForm : Form
         dataGrid.Columns.Add(column);
     }
 
-    private bool ValidateStudentID(out int id) => int.TryParse(searchBox.Text, out id) && id > 0;
+    private bool ValidateStudentID(out int id) => int.TryParse(searchBox.Text.Trim(), out id) && id > 0;
 
     private void Search()
     {
@@ -355,7 +362,7 @@ public partial class MainForm : Form
         searchButton.Text = @"Search";
     }
 
-    private void searchBox_KeyPress(object sender, KeyPressEventArgs e)
+    private async void searchBox_KeyPress(object sender, KeyPressEventArgs e)
     {
         if (e.KeyChar != (char)Keys.Enter)
         {
@@ -363,10 +370,10 @@ public partial class MainForm : Form
         }
 
         e.Handled = true;
-        Search();
+        await Task.Run(Search);
     }
 
-    private void searchButton_Click(object sender, EventArgs e) => Search();
+    private async void searchButton_Click(object sender, EventArgs e) => await Task.Run(Search);
 
     private void addButton_Click(object sender, EventArgs e)
     {
@@ -379,7 +386,7 @@ public partial class MainForm : Form
         throw new NotImplementedException();
     }
 
-    private void dataGrid_CellClick(object? sender, DataGridViewCellEventArgs e)
+    private async void dataGrid_CellClick(object? sender, DataGridViewCellEventArgs e)
     {
         if (e.RowIndex < 0)
         {
@@ -394,7 +401,7 @@ public partial class MainForm : Form
         else if (e.ColumnIndex == dataGrid.Columns["Delete"]!.Index)
         {
             DataGridViewRow row = dataGrid.Rows[e.RowIndex];
-            if (row.Tag is not Grade grade || grade.Delete())
+            if (row.Tag is not Grade grade || await Task.Run(grade.Delete))
             {
                 dataGrid.Rows.RemoveAt(e.RowIndex);
             }
