@@ -23,15 +23,8 @@ public partial class MainForm : Form
     private const string ImportFolderNameExample = "\n\nCorrect format example:\nGrades 2024 Fall";
     private const string ImportFileNameExample = "\n\nCorrect format example:\nCSC 440 2024 Fall 12345";
 
-    private void importButton_Click(object sender, EventArgs e)
+    private void ImportGrades(string folder)
     {
-        importDialog.InitialDirectory = Directory.GetCurrentDirectory();
-        if (importDialog.ShowDialog() != DialogResult.OK)
-        {
-            return;
-        }
-
-        string folder = importDialog.SelectedPath;
         string folderName = Path.GetFileName(folder);
         string[] folderParams = folderName.Split(' ');
         if (folderParams.Length < 1 || folderParams[0] != "Grades")
@@ -234,6 +227,28 @@ public partial class MainForm : Form
         }
     }
 
+    private void importButton_Click(object sender, EventArgs e)
+    {
+        importDialog.InitialDirectory = Directory.GetCurrentDirectory();
+        if (importDialog.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        searchBox.Text = string.Empty;
+        searchButton.Text = @"Search";
+        searchButton.Enabled = false;
+        resultsLabel.Text = @"Importing grades . . .";
+        addButton.Enabled = false;
+        dataGrid.Rows.Clear();
+        dataGrid.Tag = null;
+
+        ImportGrades(importDialog.SelectedPath);
+
+        searchButton.Enabled = true;
+        resultsLabel.Text = @"No student selected.";
+    }
+
     public MainForm()
     {
         InitializeComponent();
@@ -273,16 +288,13 @@ public partial class MainForm : Form
 
     private bool ValidateStudentID(out int id) => int.TryParse(searchBox.Text, out id) && id > 0;
 
-    private bool _searching;
-
     private void Search()
     {
-        if (_searching || !ValidateStudentID(out int id))
+        if (!searchButton.Enabled || !ValidateStudentID(out int id))
         {
             return;
         }
 
-        _searching = true;
         searchButton.Text = @"Refresh";
         searchButton.Enabled = false;
         resultsLabel.Text = $@"Grabbing information for student #{id} . . .";
@@ -309,7 +321,6 @@ public partial class MainForm : Form
             dataGrid.Rows.Add(row);
         }
 
-        _searching = false;
         searchButton.Enabled = true;
         resultsLabel.Text = $@"Selected {(student.Existing ? "existing" : "new")} student #{student.ID}" +
                             $@"{(student.Name is not null ? $" ({student.Name})" : "")}";
