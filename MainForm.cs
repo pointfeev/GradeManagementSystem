@@ -1,15 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
-using MySql.Data.MySqlClient;
 
 namespace GradeManagementSystem;
 
@@ -88,8 +79,14 @@ public partial class MainForm : Form
             using FileStream stream = new(file, FileMode.Open, FileAccess.Read);
             using SpreadsheetDocument document = SpreadsheetDocument.Open(stream, false);
             WorkbookPart workbookPart = document.WorkbookPart!;
-            SharedStringTable sharedStringTable =
-                workbookPart.GetPartsOfType<SharedStringTablePart>().First().SharedStringTable;
+
+            List<OpenXmlElement> sharedStrings = [];
+            foreach (SharedStringTablePart sharedStringTablePart in
+                     workbookPart.GetPartsOfType<SharedStringTablePart>())
+            {
+                sharedStrings.AddRange(sharedStringTablePart.SharedStringTable.ChildElements);
+            }
+
             foreach (WorksheetPart worksheetPart in workbookPart.WorksheetParts)
             {
                 Dictionary<int, string> columns = new();
@@ -108,27 +105,29 @@ public partial class MainForm : Form
                     {
                         Cell cell = cells[cellIndex];
                         string cellText;
-                        if (cell.DataType != null && cell.DataType.Value == CellValues.SharedString)
+                        if (cell.DataType is not null && cell.DataType.Value == CellValues.SharedString)
                         {
-                            if (!int.TryParse(cell.CellValue?.Text, out int sharedStringId))
+                            if (!int.TryParse(cell.InnerText, out int sharedStringId))
                             {
                                 continue;
                             }
 
-                            cellText = sharedStringTable.ChildElements[sharedStringId].InnerText;
-                        }
-                        else if (cell.CellValue != null)
-                        {
-                            cellText = cell.CellValue.Text;
+                            cellText = sharedStrings[sharedStringId].InnerText;
                         }
                         else
+                        {
+                            cellText = cell.InnerText;
+                        }
+
+                        cellText = cellText.Trim();
+                        if (cellText.Length == 0)
                         {
                             continue;
                         }
 
                         if (rowIndex == 0)
                         {
-                            columns[cellIndex] = cellText.Trim().ToLower();
+                            columns[cellIndex] = cellText.ToLower();
                             continue;
                         }
 
@@ -137,14 +136,14 @@ public partial class MainForm : Form
                         {
                             case "name":
                             {
-                                name = cellText.Trim();
-                                if (name.Length == 0)
+                                if (cellText.Length == 0)
                                 {
                                     DisplayError(
                                         $"Invalid value for column \"name\" in file {fileName} on row {rowIndex + 1}");
                                     return;
                                 }
 
+                                name = cellText;
                                 break;
                             }
                             case "id":
@@ -161,7 +160,7 @@ public partial class MainForm : Form
                             }
                             case "grade":
                             {
-                                string gradeString = cellText.Trim().ToUpper();
+                                string gradeString = cellText.ToUpper();
                                 if (gradeString.Length != 1 || !Grade.ValidLetters.Contains(gradeString[0]))
                                 {
                                     DisplayError(
