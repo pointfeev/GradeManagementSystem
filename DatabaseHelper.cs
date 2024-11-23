@@ -74,6 +74,17 @@ public static class DatabaseHelper
             {
                 command.ExecuteNonQuery();
             }
+#if DEBUG
+            string commandString = command.Parameters.Cast<MySqlParameter>().Aggregate(command.CommandText,
+                (current, parameter) => current.Replace(parameter.ParameterName, parameter.Value?.ToString()));
+            commandString = commandString.Replace('\r', ' ').Replace('\n', ' ').Replace('\t', ' ');
+            while (commandString.Contains("  "))
+            {
+                commandString = commandString.Replace("  ", " ");
+            }
+
+            Console.WriteLine($@"EXECUTED COMMAND ""{commandString}""");
+#endif
         }
         catch (MySqlException ex)
         {
