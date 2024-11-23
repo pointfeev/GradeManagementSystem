@@ -51,7 +51,8 @@ public static class DatabaseHelper
     ///     will be executed and passed to the callback.
     /// </summary>
     /// <returns>Boolean indicating if the command ran successfully</returns>
-    public static bool Execute(this MySqlCommand command, Action<MySqlDataReader>? callback = null)
+    public static bool Execute(this MySqlCommand command, Action<MySqlDataReader>? callback = null,
+        bool displayExecutionErrors = true)
     {
         if (!Connect())
         {
@@ -86,7 +87,11 @@ public static class DatabaseHelper
         }
         catch (MySqlException ex)
         {
-            MainForm.DisplayError(ex.Message);
+            if (displayExecutionErrors)
+            {
+                MainForm.DisplayError(ex.Message);
+            }
+
             success = false;
         }
 

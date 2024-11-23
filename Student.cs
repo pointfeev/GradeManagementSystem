@@ -138,9 +138,9 @@ public class Student
     /// <returns>Boolean indicating if the deletion was successful</returns>
     public bool Delete()
     {
-        MySqlCommand command = new($"DELETE IGNORE FROM {Table} WHERE id = @id;");
+        MySqlCommand command = new($"DELETE FROM {Table} WHERE id = @id;");
         command.Parameters.AddWithValue("@id", ID);
-        return command.Execute();
+        return command.Execute(displayExecutionErrors: false);
     }
 
     /// <summary>

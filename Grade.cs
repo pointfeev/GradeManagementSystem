@@ -100,10 +100,12 @@ public class Grade
     {
         MySqlCommand command = new($"DELETE FROM {Table} WHERE id = @id;");
         command.Parameters.AddWithValue("@id", ID);
-        if (!command.Execute() || !Course.Delete())
+        if (!command.Execute())
         {
             return false;
         }
+
+        Course.Delete();
 
         Student.Grades.Remove(this);
         return true;

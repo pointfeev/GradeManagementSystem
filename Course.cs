@@ -137,8 +137,8 @@ public class Course
     /// <returns>Boolean indicating if the deletion was successful</returns>
     public bool Delete()
     {
-        MySqlCommand command = new($"DELETE IGNORE FROM {Table} WHERE crn = @crn;");
+        MySqlCommand command = new($"DELETE FROM {Table} WHERE crn = @crn;");
         command.Parameters.AddWithValue("@crn", CRN);
-        return command.Execute();
+        return command.Execute(displayExecutionErrors: false);
     }
 }
