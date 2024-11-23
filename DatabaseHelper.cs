@@ -46,12 +46,10 @@ public static class DatabaseHelper
     }
 
     /// <summary>
-    /// Executes the passed <see cref="MySql.Data.MySqlClient.MySqlCommand"/>.
-    ///
-    /// If a callback is passed, a <see cref="MySql.Data.MySqlClient.MySqlDataReader"/>
-    /// will be executed and passed to the callback.
+    ///     Executes the passed <see cref="MySql.Data.MySqlClient.MySqlCommand" />.
+    ///     If a callback is passed, a <see cref="MySql.Data.MySqlClient.MySqlDataReader" />
+    ///     will be executed and passed to the callback.
     /// </summary>
-    ///
     /// <returns>Boolean indicating if the command ran successfully</returns>
     public static bool Execute(this MySqlCommand command, Action<MySqlDataReader>? callback = null)
     {

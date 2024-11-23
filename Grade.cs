@@ -9,8 +9,8 @@ public class Grade
     public static readonly HashSet<char> ValidLetters = ['A', 'B', 'C', 'D', 'F'];
 
     /// <summary>
-    /// <see cref="GradeManagementSystem.Grade.ID"/> is auto-incremented in the database,
-    /// so this field is not required unless editing or deleting.
+    ///     <see cref="GradeManagementSystem.Grade.ID" /> is auto-incremented in the database,
+    ///     so this field is not required unless editing or deleting.
     /// </summary>
     public int ID;
 
@@ -48,13 +48,11 @@ public class Grade
     public bool NeedsCommit;
 
     /// <summary>
-    /// Commits the current <see cref="GradeManagementSystem.Grade"/> instance data to the database,
-    /// replacing the existing row if it exists.
-    ///
-    /// Also commits the linked <see cref="GradeManagementSystem.Grade.Course"/> instance,
-    /// see <see cref="GradeManagementSystem.Course.Commit"/>.
+    ///     Commits the current <see cref="GradeManagementSystem.Grade" /> instance data to the database,
+    ///     replacing the existing row if it exists.
+    ///     Also commits the linked <see cref="GradeManagementSystem.Grade.Course" /> instance,
+    ///     see <see cref="GradeManagementSystem.Course.Commit" />.
     /// </summary>
-    ///
     /// <returns>Boolean indicating if all the commits were successful</returns>
     public bool Commit()
     {
@@ -92,13 +90,11 @@ public class Grade
     }
 
     /// <summary>
-    /// Deletes the current <see cref="GradeManagementSystem.Grade"/> instance
-    /// <see cref="GradeManagementSystem.Grade.ID"/> from the database if it exists.
-    ///
-    /// Also deletes the linked <see cref="GradeManagementSystem.Course"/> instance,
-    /// see <see cref="GradeManagementSystem.Course.Delete"/>.
+    ///     Deletes the current <see cref="GradeManagementSystem.Grade" /> instance
+    ///     <see cref="GradeManagementSystem.Grade.ID" /> from the database if it exists.
+    ///     Also deletes the linked <see cref="GradeManagementSystem.Course" /> instance,
+    ///     see <see cref="GradeManagementSystem.Course.Delete" />.
     /// </summary>
-    ///
     /// <returns>Boolean indicating if all the deletions were successful</returns>
     public bool Delete()
     {

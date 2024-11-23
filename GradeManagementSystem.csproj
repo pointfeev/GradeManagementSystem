@@ -1,23 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <UseWindowsForms>true</UseWindowsForms>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <OutputType>WinExe</OutputType>
-    <LangVersion>latestmajor</LangVersion>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net8.0-windows</TargetFramework>
+        <Nullable>enable</Nullable>
+        <UseWindowsForms>true</UseWindowsForms>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <OutputType>WinExe</OutputType>
+        <LangVersion>latestmajor</LangVersion>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="DocumentFormat.OpenXml" Version="3.1.1" />
-    <PackageReference Include="MySql.Data" Version="9.1.0" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="DocumentFormat.OpenXml" Version="3.1.1"/>
+        <PackageReference Include="MySql.Data" Version="9.1.0"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="AddEditForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-  </ItemGroup>
+    <ItemGroup>
+        <Compile Update="AddEditForm.cs">
+            <SubType>Form</SubType>
+        </Compile>
+    </ItemGroup>
 
 </Project>

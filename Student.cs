@@ -48,20 +48,19 @@ public class Student
     public readonly List<Grade> Grades = [];
 
     /// <summary>
-    /// Does the current <see cref="GradeManagementSystem.Student"/> instance
-    /// <see cref="GradeManagementSystem.Student.ID"/> exist in the database.
+    ///     Does the current <see cref="GradeManagementSystem.Student" /> instance
+    ///     <see cref="GradeManagementSystem.Student.ID" /> exist in the database.
     /// </summary>
     public bool Existing;
 
     /// <summary>
-    /// Creates a new <see cref="GradeManagementSystem.Student"/> instance
-    /// from the passed <see cref="GradeManagementSystem.Student.ID"/>,
-    /// and populates the <see cref="GradeManagementSystem.Student.Name"/>,
-    /// <see cref="GradeManagementSystem.Student.GPA"/> and <see cref="GradeManagementSystem.Student.Grades"/>
-    /// fields from the database if the student exists in the database.
-    ///
-    /// If the student exists in the database, <see cref="GradeManagementSystem.Student.Existing"/>
-    /// will be set to <c>true</c>, otherwise it will be <c>false</c>.
+    ///     Creates a new <see cref="GradeManagementSystem.Student" /> instance
+    ///     from the passed <see cref="GradeManagementSystem.Student.ID" />,
+    ///     and populates the <see cref="GradeManagementSystem.Student.Name" />,
+    ///     <see cref="GradeManagementSystem.Student.GPA" /> and <see cref="GradeManagementSystem.Student.Grades" />
+    ///     fields from the database if the student exists in the database.
+    ///     If the student exists in the database, <see cref="GradeManagementSystem.Student.Existing" />
+    ///     will be set to <c>true</c>, otherwise it will be <c>false</c>.
     /// </summary>
     public Student(int id)
     {
@@ -97,13 +96,11 @@ public class Student
     }
 
     /// <summary>
-    /// Commits the current <see cref="GradeManagementSystem.Student"/> instance data to the database,
-    /// replacing the existing row if it exists.
-    ///
-    /// Also commits the linked <see cref="GradeManagementSystem.Student.Grades"/> instances,
-    /// see <see cref="GradeManagementSystem.Grade.Commit"/>.
+    ///     Commits the current <see cref="GradeManagementSystem.Student" /> instance data to the database,
+    ///     replacing the existing row if it exists.
+    ///     Also commits the linked <see cref="GradeManagementSystem.Student.Grades" /> instances,
+    ///     see <see cref="GradeManagementSystem.Grade.Commit" />.
     /// </summary>
-    ///
     /// <returns>Boolean indicating if all the commits were successful</returns>
     public bool Commit()
     {
@@ -125,20 +122,19 @@ public class Student
             }
 
             NeedsCommit = false;
-            Existing = true;
         }
+
+        Existing = true;
 
         return Grades.Aggregate(true, (current, grade) => current && grade.Commit());
     }
 
     /// <summary>
-    /// Deletes the current <see cref="GradeManagementSystem.Student"/> instance
-    /// <see cref="GradeManagementSystem.Student.ID"/> from the database if it exists.
-    ///
-    /// Due to foreign key constraints, will only delete if no <see cref="GradeManagementSystem.Grade"/> instances
-    /// reference the <see cref="GradeManagementSystem.Student.ID"/> in the database; this is intended behavior.
+    ///     Deletes the current <see cref="GradeManagementSystem.Student" /> instance
+    ///     <see cref="GradeManagementSystem.Student.ID" /> from the database if it exists.
+    ///     Due to foreign key constraints, will only delete if no <see cref="GradeManagementSystem.Grade" /> instances
+    ///     reference the <see cref="GradeManagementSystem.Student.ID" /> in the database; this is intended behavior.
     /// </summary>
-    ///
     /// <returns>Boolean indicating if the deletion was successful</returns>
     public bool Delete()
     {
@@ -148,9 +144,8 @@ public class Student
     }
 
     /// <summary>
-    /// Populates the <see cref="GradeManagementSystem.Student.Grades"/> list from the database.
+    ///     Populates the <see cref="GradeManagementSystem.Student.Grades" /> list from the database.
     /// </summary>
-    ///
     /// <returns>Boolean indicating if the get was successful</returns>
     private bool GetGrades()
     {
@@ -185,8 +180,8 @@ public class Student
     }
 
     /// <summary>
-    /// Calculates the grade point average from the current <see cref="GradeManagementSystem.Student.Grades"/> list
-    /// and sets <see cref="GradeManagementSystem.Student.GPA"/> to the result.
+    ///     Calculates the grade point average from the current <see cref="GradeManagementSystem.Student.Grades" /> list
+    ///     and sets <see cref="GradeManagementSystem.Student.GPA" /> to the result.
     /// </summary>
     public void CalculateGPA()
     {
@@ -209,7 +204,7 @@ public class Student
     }
 
     /// <summary>
-    /// TODO
+    ///     TODO
     /// </summary>
     public void PrintTranscript()
     {

@@ -94,10 +94,9 @@ public class Course
     public bool NeedsCommit;
 
     /// <summary>
-    /// Commits the current <see cref="GradeManagementSystem.Course"/> instance data to the database,
-    /// replacing the existing row if it exists.
+    ///     Commits the current <see cref="GradeManagementSystem.Course" /> instance data to the database,
+    ///     replacing the existing row if it exists.
     /// </summary>
-    ///
     /// <returns>Boolean indicating if the commit was successful</returns>
     public bool Commit()
     {
@@ -130,13 +129,11 @@ public class Course
     }
 
     /// <summary>
-    /// Deletes the current <see cref="GradeManagementSystem.Course"/> instance
-    /// <see cref="GradeManagementSystem.Course.CRN"/> from the database if it exists.
-    ///
-    /// Due to foreign key constraints, will only delete if no <see cref="GradeManagementSystem.Grade"/> instances
-    /// reference the <see cref="GradeManagementSystem.Course.CRN"/> in the database; this is intended behavior.
+    ///     Deletes the current <see cref="GradeManagementSystem.Course" /> instance
+    ///     <see cref="GradeManagementSystem.Course.CRN" /> from the database if it exists.
+    ///     Due to foreign key constraints, will only delete if no <see cref="GradeManagementSystem.Grade" /> instances
+    ///     reference the <see cref="GradeManagementSystem.Course.CRN" /> in the database; this is intended behavior.
     /// </summary>
-    ///
     /// <returns>Boolean indicating if the deletion was successful</returns>
     public bool Delete()
     {
