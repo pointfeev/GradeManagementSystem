@@ -85,6 +85,8 @@ public class Grade
             return false;
         }
 
+        ID = (int)command.LastInsertedId;
+
         NeedsCommit = false;
         return true;
     }
