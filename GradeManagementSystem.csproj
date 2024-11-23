@@ -14,4 +14,10 @@
     <PackageReference Include="MySql.Data" Version="9.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="AddEditForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+
 </Project>

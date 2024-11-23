@@ -8,7 +8,7 @@ public partial class MainForm : Form
 {
     public static void DisplayError(string text)
     {
-        MessageBox.Show(text, @"ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        MessageBox.Show(ActiveForm, text, @"ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
     }
 
     private const string ImportFolderNameExample = "\n\nCorrect format example:\nGrades 2024 Fall";
@@ -312,6 +312,20 @@ public partial class MainForm : Form
 
     private bool ValidateStudentID(out int id) => int.TryParse(searchBox.Text.Trim(), out id) && id > 0;
 
+    private void CreateRow(Grade grade)
+    {
+        DataGridViewRow row = new();
+        row.Tag = grade;
+        row.CreateCells(dataGrid);
+        row.Cells[dataGrid.Columns["CRN"]!.Index].Value = grade.Course.CRN;
+        row.Cells[dataGrid.Columns["Prefix"]!.Index].Value = grade.Course.Prefix;
+        row.Cells[dataGrid.Columns["Number"]!.Index].Value = grade.Course.Number;
+        row.Cells[dataGrid.Columns["Year"]!.Index].Value = grade.Course.Year;
+        row.Cells[dataGrid.Columns["Semester"]!.Index].Value = grade.Course.Semester;
+        row.Cells[dataGrid.Columns["Grade"]!.Index].Value = grade.Letter;
+        dataGrid.Rows.Add(row);
+    }
+
     private void Search()
     {
         if (!searchButton.Enabled || !ValidateStudentID(out int id))
@@ -330,20 +344,7 @@ public partial class MainForm : Form
         dataGrid.Tag = student;
         foreach (Grade grade in student.Grades)
         {
-            DataGridViewRow row = new();
-            row.Tag = grade;
-
-            row.CreateCells(dataGrid);
-
-            row.Cells[dataGrid.Columns["Grade"]!.Index].Value = grade.Letter;
-
-            row.Cells[dataGrid.Columns["CRN"]!.Index].Value = grade.Course.CRN;
-            row.Cells[dataGrid.Columns["Prefix"]!.Index].Value = grade.Course.Prefix;
-            row.Cells[dataGrid.Columns["Number"]!.Index].Value = grade.Course.Number;
-            row.Cells[dataGrid.Columns["Year"]!.Index].Value = grade.Course.Year;
-            row.Cells[dataGrid.Columns["Semester"]!.Index].Value = grade.Course.Semester;
-
-            dataGrid.Rows.Add(row);
+            CreateRow(grade);
         }
 
         searchButton.Enabled = true;
@@ -386,36 +387,107 @@ public partial class MainForm : Form
 
     private async void searchButton_Click(object sender, EventArgs e) => await Task.Run(Search);
 
-    private void addButton_Click(object sender, EventArgs e)
+    private async void addButton_Click(object sender, EventArgs e)
     {
         if (dataGrid.Tag is not Student student)
         {
             return;
         }
 
-        // TODO: create a form that can be used for add and edit functionality
-        throw new NotImplementedException();
+        AddEditForm form = new();
+        form.Text = @"Add";
+        if (form.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        Grade grade = new()
+        {
+            Student = student,
+            Letter = form.Grade[0],
+            Course = new()
+            {
+                CRN = int.Parse(form.CRN),
+                Prefix = form.Prefix,
+                Number = int.Parse(form.Number),
+                Year = int.Parse(form.Year),
+                Semester = form.Semester
+            }
+        };
+
+        await Task.Run(student.CalculateGPA);
+        if (!await Task.Run(student.Commit))
+        {
+            return;
+        }
+
+        CreateRow(grade);
     }
 
     private async void dataGrid_CellClick(object? sender, DataGridViewCellEventArgs e)
     {
-        if (e.RowIndex < 0)
+        if (dataGrid.Tag is not Student student || e.RowIndex < 0)
         {
+            return;
+        }
+
+        DataGridViewRow row = dataGrid.Rows[e.RowIndex];
+        if (row.Tag is not Grade grade)
+        {
+            dataGrid.Rows.RemoveAt(e.RowIndex);
             return;
         }
 
         if (e.ColumnIndex == dataGrid.Columns["Edit"]!.Index)
         {
-            // TODO: create a form that can be used for add and edit functionality
-            throw new NotImplementedException();
+            AddEditForm form = new();
+            form.Text = @"Edit";
+
+            Course course = grade.Course;
+            form.CRN = course.CRN.ToString();
+            form.Prefix = course.Prefix;
+            form.Number = course.Number.ToString();
+            form.Year = course.Year.ToString();
+            form.Semester = course.Semester;
+            form.Grade = grade.Letter.ToString();
+            if (form.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
+
+            course.CRN = int.Parse(form.CRN);
+            course.Prefix = form.Prefix;
+            course.Number = int.Parse(form.Number);
+            course.Year = int.Parse(form.Year);
+            course.Semester = form.Semester;
+            grade.Letter = form.Grade[0];
+            await Task.Run(student.CalculateGPA);
+            if (!await Task.Run(student.Commit))
+            {
+                return;
+            }
+
+            row.Cells[dataGrid.Columns["CRN"]!.Index].Value = grade.Course.CRN;
+            row.Cells[dataGrid.Columns["Prefix"]!.Index].Value = grade.Course.Prefix;
+            row.Cells[dataGrid.Columns["Number"]!.Index].Value = grade.Course.Number;
+            row.Cells[dataGrid.Columns["Year"]!.Index].Value = grade.Course.Year;
+            row.Cells[dataGrid.Columns["Semester"]!.Index].Value = grade.Course.Semester;
+            row.Cells[dataGrid.Columns["Grade"]!.Index].Value = grade.Letter;
         }
         else if (e.ColumnIndex == dataGrid.Columns["Delete"]!.Index)
         {
-            DataGridViewRow row = dataGrid.Rows[e.RowIndex];
-            if (row.Tag is not Grade grade || await Task.Run(grade.Delete))
+            if (!await Task.Run(grade.Delete))
             {
-                dataGrid.Rows.RemoveAt(e.RowIndex);
+                return;
             }
+
+            await Task.Run(student.CalculateGPA);
+            if (!await Task.Run(student.Commit))
+            {
+                return;
+            }
+
+            dataGrid.Rows.RemoveAt(e.RowIndex);
         }
     }
 }
