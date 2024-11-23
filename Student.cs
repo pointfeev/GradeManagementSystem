@@ -1,4 +1,5 @@
-﻿using MySql.Data.MySqlClient;
+﻿using System.Data;
+using MySql.Data.MySqlClient;
 
 namespace GradeManagementSystem;
 
@@ -75,8 +76,15 @@ public class Student
                     return;
                 }
 
-                Name = reader.GetString("name");
-                GPA = reader.GetDouble("gpa");
+                if (reader.GetValue("name").GetType() != typeof(DBNull))
+                {
+                    Name = reader.GetString("name");
+                }
+
+                if (reader.GetValue("gpa").GetType() != typeof(DBNull))
+                {
+                    GPA = reader.GetDouble("gpa");
+                }
 
                 NeedsCommit = false;
                 Existing = true;
