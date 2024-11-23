@@ -247,6 +247,18 @@ public partial class MainForm : Form
         }
     }
 
+    private void UpdateResultsLabel(Student? student = null)
+    {
+        if (student is null)
+        {
+            resultsLabel.Text = @"No student selected.";
+            return;
+        }
+
+        resultsLabel.Text = $@"Selected {(student.Existing ? "existing" : "new")} student #{student.ID}" +
+                            $@"{(student.Name is not null ? $" ({student.Name})" : "")}";
+    }
+
     private async void importButton_Click(object sender, EventArgs e)
     {
         importDialog.InitialDirectory = Directory.GetCurrentDirectory();
@@ -273,7 +285,7 @@ public partial class MainForm : Form
 
         searchBox.Enabled = true;
         searchButton.Enabled = true;
-        resultsLabel.Text = @"No student selected.";
+        UpdateResultsLabel();
         dataGrid.Enabled = true;
 
         if (search)
@@ -321,17 +333,22 @@ public partial class MainForm : Form
 
     private bool ValidateStudentID(out int id) => int.TryParse(searchBox.Text.Trim(), out id) && id > 0;
 
-    private void CreateRow(Grade grade)
+    private void UpdateRow(DataGridViewRow row, Grade grade)
     {
-        DataGridViewRow row = new();
-        row.Tag = grade;
-        row.CreateCells(dataGrid);
         row.Cells[dataGrid.Columns["CRN"]!.Index].Value = grade.Course.CRN;
         row.Cells[dataGrid.Columns["Prefix"]!.Index].Value = grade.Course.Prefix;
         row.Cells[dataGrid.Columns["Number"]!.Index].Value = grade.Course.Number;
         row.Cells[dataGrid.Columns["Year"]!.Index].Value = grade.Course.Year;
         row.Cells[dataGrid.Columns["Semester"]!.Index].Value = grade.Course.Semester;
         row.Cells[dataGrid.Columns["Grade"]!.Index].Value = grade.Letter;
+    }
+
+    private void CreateRow(Grade grade)
+    {
+        DataGridViewRow row = new();
+        row.Tag = grade;
+        row.CreateCells(dataGrid);
+        UpdateRow(row, grade);
         dataGrid.Rows.Add(row);
     }
 
@@ -357,8 +374,7 @@ public partial class MainForm : Form
         }
 
         searchButton.Enabled = true;
-        resultsLabel.Text = $@"Selected {(student.Existing ? "existing" : "new")} student #{student.ID}" +
-                            $@"{(student.Name is not null ? $" ({student.Name})" : "")}";
+        UpdateResultsLabel(student);
         addButton.Enabled = true;
         dataGrid.Enabled = true;
     }
@@ -430,6 +446,7 @@ public partial class MainForm : Form
             return;
         }
 
+        UpdateResultsLabel(student);
         CreateRow(grade);
     }
 
@@ -476,17 +493,26 @@ public partial class MainForm : Form
                 return;
             }
 
-            row.Cells[dataGrid.Columns["CRN"]!.Index].Value = grade.Course.CRN;
-            row.Cells[dataGrid.Columns["Prefix"]!.Index].Value = grade.Course.Prefix;
-            row.Cells[dataGrid.Columns["Number"]!.Index].Value = grade.Course.Number;
-            row.Cells[dataGrid.Columns["Year"]!.Index].Value = grade.Course.Year;
-            row.Cells[dataGrid.Columns["Semester"]!.Index].Value = grade.Course.Semester;
-            row.Cells[dataGrid.Columns["Grade"]!.Index].Value = grade.Letter;
+            UpdateResultsLabel(student);
+            UpdateRow(row, grade);
         }
         else if (e.ColumnIndex == dataGrid.Columns["Delete"]!.Index)
         {
             if (!await Task.Run(grade.Delete))
             {
+                return;
+            }
+
+            if (await Task.Run(student.Delete))
+            {
+                student.Name = null;
+                student.GPA = null;
+                student.NeedsCommit = false;
+                student.Existing = false;
+                student.Grades.Clear();
+
+                UpdateResultsLabel(student);
+                dataGrid.Rows.Clear();
                 return;
             }
 

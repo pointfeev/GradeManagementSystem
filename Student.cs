@@ -132,6 +132,22 @@ public class Student
     }
 
     /// <summary>
+    /// Deletes the current <see cref="GradeManagementSystem.Student"/> instance
+    /// <see cref="GradeManagementSystem.Student.ID"/> from the database if it exists.
+    ///
+    /// Due to foreign key constraints, will only delete if no <see cref="GradeManagementSystem.Grade"/> instances
+    /// reference the <see cref="GradeManagementSystem.Student.ID"/> in the database; this is intended behavior.
+    /// </summary>
+    ///
+    /// <returns>Boolean indicating if the deletion was successful</returns>
+    public bool Delete()
+    {
+        MySqlCommand command = new($"DELETE IGNORE FROM {Table} WHERE id = @id;");
+        command.Parameters.AddWithValue("@id", ID);
+        return command.Execute();
+    }
+
+    /// <summary>
     /// Populates the <see cref="GradeManagementSystem.Student.Grades"/> list from the database.
     /// </summary>
     ///
