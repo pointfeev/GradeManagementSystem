@@ -271,7 +271,7 @@ partial class AddEditForm
         saveButton.Text = "Save";
         saveButton.UseVisualStyleBackColor = true;
         saveButton.Click += saveButton_Click;
-        //
+        // 
         // cancelButton
         // 
         cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)(System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right));

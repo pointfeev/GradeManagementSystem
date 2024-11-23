@@ -38,6 +38,8 @@ public partial class MainForm : Form
 
         string semester = folderParams[2];
 
+        Dictionary<int, Student> studentImportCache = [];
+
         foreach (string file in Directory.EnumerateFiles(folder, "*.xlsx"))
         {
             string fileName = Path.GetFileNameWithoutExtension(file);
@@ -201,10 +203,14 @@ public partial class MainForm : Form
                         return;
                     }
 
-                    Student student = new(id.Value)
+                    if (!studentImportCache.TryGetValue(id.Value, out Student? student))
                     {
-                        Name = name
-                    };
+                        student = new(id.Value)
+                        {
+                            Name = name
+                        };
+                        studentImportCache.Add(id.Value, student);
+                    }
 
                     Grade? grade = student.Grades.Find(grade => grade.Course.CRN == crn);
                     if (grade is not null)
