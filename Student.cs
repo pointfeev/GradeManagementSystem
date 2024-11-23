@@ -7,8 +7,42 @@ public class Student
     public const string Table = "zma_student";
 
     public readonly int ID;
-    public string? Name;
-    public double? GPA;
+
+    private string? _name;
+
+    public string? Name
+    {
+        get => _name;
+        set
+        {
+            if (_name == value)
+            {
+                return;
+            }
+
+            _name = value;
+            NeedsCommit = true;
+        }
+    }
+
+    private double? _gpa;
+
+    public double? GPA
+    {
+        get => _gpa;
+        set
+        {
+            if (_gpa == value)
+            {
+                return;
+            }
+
+            _gpa = value;
+            NeedsCommit = true;
+        }
+    }
+
+    public bool NeedsCommit;
 
     public readonly List<Grade> Grades = [];
 
@@ -41,10 +75,11 @@ public class Student
                     return;
                 }
 
-                Existing = true;
-
                 Name = reader.GetString("name");
                 GPA = reader.GetDouble("gpa");
+
+                NeedsCommit = false;
+                Existing = true;
             }) || !Existing)
         {
             return;
@@ -64,22 +99,26 @@ public class Student
     /// <returns>Boolean indicating if all the commits were successful</returns>
     public bool Commit()
     {
-        MySqlCommand command = new($"""
-                                    INSERT INTO {Table} (id, name, gpa)
-                                    VALUES (@id, @name, @gpa)
-                                    ON DUPLICATE KEY UPDATE
-                                        name = VALUES(name),
-                                        gpa = VALUES(gpa);
-                                    """);
-        command.Parameters.AddWithValue("@id", ID);
-        command.Parameters.AddWithValue("@name", Name);
-        command.Parameters.AddWithValue("@gpa", GPA);
-        if (!command.Execute())
+        if (NeedsCommit)
         {
-            return false;
-        }
+            MySqlCommand command = new($"""
+                                        INSERT INTO {Table} (id, name, gpa)
+                                        VALUES (@id, @name, @gpa)
+                                        ON DUPLICATE KEY UPDATE
+                                            name = VALUES(name),
+                                            gpa = VALUES(gpa);
+                                        """);
+            command.Parameters.AddWithValue("@id", ID);
+            command.Parameters.AddWithValue("@name", Name);
+            command.Parameters.AddWithValue("@gpa", GPA);
+            if (!command.Execute())
+            {
+                return false;
+            }
 
-        Existing = true;
+            NeedsCommit = false;
+            Existing = true;
+        }
 
         return Grades.Aggregate(true, (current, grade) => current && grade.Commit());
     }
@@ -112,8 +151,10 @@ public class Student
                         Prefix = reader.GetString("prefix"),
                         Number = reader.GetInt32("number"),
                         Year = reader.GetInt32("year"),
-                        Semester = reader.GetString("semester")
-                    }
+                        Semester = reader.GetString("semester"),
+                        NeedsCommit = false
+                    },
+                    NeedsCommit = false
                 };
             }
         });

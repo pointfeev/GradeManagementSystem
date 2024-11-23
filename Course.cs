@@ -6,11 +6,92 @@ public class Course
 {
     public const string Table = "zma_course";
 
-    public required int CRN;
-    public required string Prefix;
-    public required int Number;
-    public required int Year;
-    public required string Semester;
+    private int _crn;
+
+    public required int CRN
+    {
+        get => _crn;
+        set
+        {
+            if (_crn == value)
+            {
+                return;
+            }
+
+            _crn = value;
+            NeedsCommit = true;
+        }
+    }
+
+    private string _prefix;
+
+    public required string Prefix
+    {
+        get => _prefix;
+        set
+        {
+            if (_prefix == value)
+            {
+                return;
+            }
+
+            _prefix = value;
+            NeedsCommit = true;
+        }
+    }
+
+    private int _number;
+
+    public required int Number
+    {
+        get => _number;
+        set
+        {
+            if (_number == value)
+            {
+                return;
+            }
+
+            _number = value;
+            NeedsCommit = true;
+        }
+    }
+
+    private int _year;
+
+    public required int Year
+    {
+        get => _year;
+        set
+        {
+            if (_year == value)
+            {
+                return;
+            }
+
+            _year = value;
+            NeedsCommit = true;
+        }
+    }
+
+    private string _semester;
+
+    public required string Semester
+    {
+        get => _semester;
+        set
+        {
+            if (_semester == value)
+            {
+                return;
+            }
+
+            _semester = value;
+            NeedsCommit = true;
+        }
+    }
+
+    public bool NeedsCommit;
 
     /// <summary>
     /// Commits the current <see cref="GradeManagementSystem.Course"/> instance data to the database,
@@ -20,6 +101,11 @@ public class Course
     /// <returns>Boolean indicating if the commit was successful</returns>
     public bool Commit()
     {
+        if (!NeedsCommit)
+        {
+            return true;
+        }
+
         MySqlCommand command = new($"""
                                     INSERT INTO {Table} (crn, prefix, number, year, semester)
                                     VALUES (@crn, @prefix, @number, @year, @semester)
@@ -34,7 +120,13 @@ public class Course
         command.Parameters.AddWithValue("@number", Number);
         command.Parameters.AddWithValue("@year", Year);
         command.Parameters.AddWithValue("@semester", Semester);
-        return command.Execute();
+        if (!command.Execute())
+        {
+            return false;
+        }
+
+        NeedsCommit = false;
+        return true;
     }
 
     /// <summary>

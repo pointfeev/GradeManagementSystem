@@ -26,8 +26,26 @@ public class Grade
         }
     }
 
-    public required char Letter;
+    private char _letter;
+
+    public required char Letter
+    {
+        get => _letter;
+        set
+        {
+            if (_letter == value)
+            {
+                return;
+            }
+
+            _letter = value;
+            NeedsCommit = true;
+        }
+    }
+
     public required Course Course;
+
+    public bool NeedsCommit;
 
     /// <summary>
     /// Commits the current <see cref="GradeManagementSystem.Grade"/> instance data to the database,
@@ -45,6 +63,11 @@ public class Grade
             return false;
         }
 
+        if (!NeedsCommit)
+        {
+            return true;
+        }
+
         MySqlCommand command = new($"""
                                     INSERT INTO {Table} (id, student_id, letter, course_crn)
                                     VALUES (@id, @student_id, @letter, @course_crn)
@@ -57,7 +80,13 @@ public class Grade
         command.Parameters.AddWithValue("@student_id", Student.ID);
         command.Parameters.AddWithValue("@letter", Letter);
         command.Parameters.AddWithValue("@course_crn", Course.CRN);
-        return command.Execute();
+        if (!command.Execute())
+        {
+            return false;
+        }
+
+        NeedsCommit = false;
+        return true;
     }
 
     /// <summary>
