@@ -38,7 +38,7 @@ public partial class MainForm : Form
 
         string semester = folderParams[2];
 
-        Dictionary<int, Student> studentImportCache = [];
+        Dictionary<int, Student> importedStudents = [];
 
         foreach (string file in Directory.EnumerateFiles(folder, "*.xlsx"))
         {
@@ -203,13 +203,13 @@ public partial class MainForm : Form
                         return;
                     }
 
-                    if (!studentImportCache.TryGetValue(id.Value, out Student? student))
+                    if (!importedStudents.TryGetValue(id.Value, out Student? student))
                     {
                         student = new(id.Value)
                         {
                             Name = name
                         };
-                        studentImportCache.Add(id.Value, student);
+                        importedStudents.Add(id.Value, student);
                     }
 
                     Grade? grade = student.Grades.Find(grade => grade.Course.CRN == crn);
@@ -233,13 +233,16 @@ public partial class MainForm : Form
                             }
                         };
                     }
-
-                    student.CalculateGPA();
-                    if (!student.Commit())
-                    {
-                        return;
-                    }
                 }
+            }
+        }
+
+        foreach ((_, Student student) in importedStudents)
+        {
+            student.CalculateGPA();
+            if (!student.Commit())
+            {
+                return;
             }
         }
     }
