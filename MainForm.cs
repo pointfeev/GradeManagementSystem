@@ -1,6 +1,9 @@
-﻿using DocumentFormat.OpenXml;
+﻿using System.Drawing.Printing;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using Font = System.Drawing.Font;
+using FontFamily = System.Drawing.FontFamily;
 
 namespace GradeManagementSystem;
 
@@ -275,6 +278,7 @@ public partial class MainForm : Form
         searchButton.Enabled = false;
         resultsLabel.Text = $"""Importing grades in folder "{folderName}" . . .""";
         addButton.Enabled = false;
+        printButton.Enabled = false;
         dataGrid.Enabled = false;
         dataGrid.Rows.Clear();
 
@@ -363,6 +367,7 @@ public partial class MainForm : Form
         searchButton.Enabled = false;
         resultsLabel.Text = $@"Grabbing information for student #{id} . . .";
         addButton.Enabled = false;
+        printButton.Enabled = false;
         dataGrid.Enabled = false;
         dataGrid.Rows.Clear();
 
@@ -376,6 +381,7 @@ public partial class MainForm : Form
         searchButton.Enabled = true;
         UpdateResultsLabel(student);
         addButton.Enabled = true;
+        printButton.Enabled = student.Grades.Count > 0;
         dataGrid.Enabled = true;
     }
 
@@ -448,12 +454,164 @@ public partial class MainForm : Form
 
         UpdateResultsLabel(student);
         CreateRow(grade);
+        printButton.Enabled = true;
     }
+
+    private StreamReader _printStream;
+
+    private readonly Font[] _printFonts =
+    [
+        new(FontFamily.GenericMonospace, 20, FontStyle.Bold),
+        new(FontFamily.GenericMonospace, 12, FontStyle.Regular)
+    ];
 
     private void printButton_Click(object sender, EventArgs e)
     {
-        // TODO
-        throw new NotImplementedException();
+        if (dataGrid.Tag is not Student student)
+        {
+            return;
+        }
+
+        MemoryStream stream = new();
+        using StreamWriter writer = new(stream);
+
+        writer.WriteLine($"Student #{student.ID}");
+        writer.WriteLine($"{student.Name}");
+        writer.WriteLine($"GPA: {student.GPA:0.00}");
+
+        List<List<string>> rows =
+        [
+            [
+                "Course CRN",
+                "Prefix",
+                "Number",
+                "Year",
+                "Semester",
+                "Grade"
+            ]
+        ];
+        rows.AddRange(from grade in student.Grades
+            let course = grade.Course
+            select (List<string>)
+            [
+                course.CRN.ToString(),
+                course.Prefix,
+                course.Number.ToString(),
+                course.Year.ToString(),
+                course.Semester,
+                grade.Letter.ToString()
+            ]);
+
+        Dictionary<int, int> columnLength = new();
+        foreach (List<string> row in rows)
+        {
+            for (int i = 0; i < row.Count; i++)
+            {
+                if (!columnLength.TryGetValue(i, out int length))
+                {
+                    columnLength[i] = row[i].Length;
+                }
+
+                columnLength[i] = Math.Max(length, row[i].Length);
+            }
+        }
+
+        writer.WriteLine();
+        for (int row = 0; row < rows.Count; row++)
+        {
+            List<string> currentRow = rows[row];
+
+            // write the lines at the top of the table and in-between rows
+            writer.Write("{1}" + // use the font at _printFonts index 1
+                         (row == 0
+                             ? '\u250c' // ┌
+                             : '\u251c')); // ├
+            for (int column = 0; column < currentRow.Count; column++)
+            {
+                writer.Write(new string('\u2500', columnLength[column] + 2) +
+                             (column == currentRow.Count - 1
+                                 ? row == 0
+                                     ? '\u2510' // ┐
+                                     : '\u2524' // ┤
+                                 : row == 0
+                                     ? '\u252c' // ┬
+                                     : '\u253c')); // ┼
+            }
+
+            writer.WriteLine();
+
+            // write the row data
+            writer.Write("{1}"); // use the font at _printFonts index 1
+            for (int column = 0; column < currentRow.Count; column++)
+            {
+                writer.Write((column == 0
+                                 ? '\u2502' // │
+                                 : string.Empty) +
+                             " {0,-" + columnLength[column] + "} " +
+                             '\u2502', // │
+                    currentRow[column]);
+            }
+
+            writer.WriteLine();
+        }
+
+        // write the lines at the bottom of the table
+        writer.Write("{1}" + // use the font at _printFonts index 1
+                     '\u2514'); // └
+        const int useRow = 0;
+        List<string> useCurrentRow = rows[useRow];
+        for (int column = 0; column < useCurrentRow.Count; column++)
+        {
+            writer.Write(new string('\u2500', // ─
+                             columnLength[column] + 2) +
+                         (column == useCurrentRow.Count - 1
+                             ? '\u2518' // ┘
+                             : '\u2534')); // ┴
+        }
+
+        writer.Flush();
+        stream.Position = 0;
+        using (_printStream = new(stream))
+        {
+            printPreviewDialog.ShowDialog();
+        }
+    }
+
+    private void printDocument_PrintPage(object sender, PrintPageEventArgs e)
+    {
+        Rectangle pageRectangle = e.MarginBounds;
+        float topMargin = pageRectangle.Top;
+        float leftMargin = pageRectangle.Left;
+        float pageHeight = pageRectangle.Height;
+        Graphics graphics = e.Graphics!;
+
+        string? line;
+        float currentHeight = 0;
+        while ((line = _printStream.ReadLine()) is not null)
+        {
+            int fontIndex = 0;
+            int parseFontStart = line.IndexOf('{');
+            if (parseFontStart != -1)
+            {
+                int parseFontEnd = line.IndexOf('}', parseFontStart);
+                if (parseFontEnd != -1)
+                {
+                    fontIndex = int.Parse(line.Substring(parseFontStart + 1, parseFontEnd - parseFontStart - 1));
+                    line = line.Remove(parseFontStart, parseFontEnd + 1 - parseFontStart);
+                }
+            }
+
+            Font font = _printFonts[fontIndex];
+            graphics.DrawString(line, font, Brushes.Black,
+                leftMargin, topMargin + currentHeight, new());
+            currentHeight += font.GetHeight(graphics);
+            if (currentHeight >= pageHeight)
+            {
+                break;
+            }
+        }
+
+        e.HasMorePages = line is not null;
     }
 
     private async void dataGrid_CellClick(object? sender, DataGridViewCellEventArgs e)
@@ -519,6 +677,7 @@ public partial class MainForm : Form
 
                 UpdateResultsLabel(student);
                 dataGrid.Rows.Clear();
+                printButton.Enabled = false;
                 return;
             }
 
@@ -529,6 +688,7 @@ public partial class MainForm : Form
             }
 
             dataGrid.Rows.RemoveAt(e.RowIndex);
+            printButton.Enabled = student.Grades.Count > 0;
         }
     }
 }

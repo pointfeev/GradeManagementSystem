@@ -31,6 +31,7 @@ partial class MainForm
         System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
         System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
         System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+        System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
         searchBox = new System.Windows.Forms.TextBox();
         importButton = new System.Windows.Forms.Button();
         searchButton = new System.Windows.Forms.Button();
@@ -39,6 +40,8 @@ partial class MainForm
         addButton = new System.Windows.Forms.Button();
         importDialog = new System.Windows.Forms.FolderBrowserDialog();
         printButton = new System.Windows.Forms.Button();
+        printPreviewDialog = new System.Windows.Forms.PrintPreviewDialog();
+        printDocument = new System.Drawing.Printing.PrintDocument();
         ((System.ComponentModel.ISupportInitialize)dataGrid).BeginInit();
         SuspendLayout();
         // 
@@ -165,6 +168,22 @@ partial class MainForm
         printButton.UseVisualStyleBackColor = true;
         printButton.Click += printButton_Click;
         // 
+        // printPreviewDialog
+        // 
+        printPreviewDialog.AutoScrollMargin = new System.Drawing.Size(0, 0);
+        printPreviewDialog.AutoScrollMinSize = new System.Drawing.Size(0, 0);
+        printPreviewDialog.ClientSize = new System.Drawing.Size(400, 300);
+        printPreviewDialog.Document = printDocument;
+        printPreviewDialog.Icon = ((System.Drawing.Icon)resources.GetObject("printPreviewDialog.Icon"));
+        printPreviewDialog.Name = "printPreviewDialog";
+        printPreviewDialog.UseAntiAlias = true;
+        printPreviewDialog.Visible = false;
+        // 
+        // printDocument
+        // 
+        printDocument.DocumentName = "Transcript";
+        printDocument.PrintPage += printDocument_PrintPage;
+        // 
         // MainForm
         // 
         AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -185,6 +204,10 @@ partial class MainForm
         ResumeLayout(false);
         PerformLayout();
     }
+
+    private System.Drawing.Printing.PrintDocument printDocument;
+
+    private System.Windows.Forms.PrintPreviewDialog printPreviewDialog;
 
     private System.Windows.Forms.Button printButton;
 
