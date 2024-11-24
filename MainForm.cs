@@ -39,8 +39,11 @@ public partial class MainForm : Form
         MessageBox.Show(ActiveForm, text, @"ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
     }
 
-    private const string ImportFolderNameExample = "\n\nCorrect format example:\nGrades 2024 Fall";
-    private const string ImportFileNameExample = "\n\nCorrect format example:\nCSC 440 2024 Fall 12345";
+    private const string ImportFolderNameExample =
+        "\n\nCorrect format:\nGrades [Year] [Semester]\nex. Grades 2024 Fall";
+
+    private const string ImportFileNameExample =
+        "\n\nCorrect format example:\n[Prefix] [Number] [Year] [Semester] [CRN]\nex. CSC 440 2024 Fall 12345";
 
     private static void ImportGrades(string folder)
     {
@@ -86,7 +89,7 @@ public partial class MainForm : Form
                 return;
             }
 
-            /*if (fileParams.Length < 3 || !int.TryParse(fileParams[2], out int year))
+            if (fileParams.Length < 3 || !int.TryParse(fileParams[2], out _)) //, out int year))
             {
                 DisplayError($"Invalid year in file name \"{fileName}\"{ImportFileNameExample}");
                 return;
@@ -98,7 +101,7 @@ public partial class MainForm : Form
                 return;
             }
 
-            string semester = fileParams[3];*/
+            // string semester = fileParams[3];
 
             if (fileParams.Length < 5 || !int.TryParse(fileParams[4], out int crn))
             {
