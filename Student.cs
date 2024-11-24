@@ -202,13 +202,4 @@ public class Student
 
         GPA = gradeCount == 0 ? 0 : gradePoints / gradeCount;
     }
-
-    /// <summary>
-    ///     TODO
-    /// </summary>
-    public void PrintTranscript()
-    {
-        // TODO
-        throw new NotImplementedException();
-    }
 }

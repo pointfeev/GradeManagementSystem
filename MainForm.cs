@@ -9,6 +9,31 @@ namespace GradeManagementSystem;
 
 public partial class MainForm : Form
 {
+    public MainForm()
+    {
+        InitializeComponent();
+
+        CreateTextColumn("CRN");
+        CreateTextColumn("Prefix");
+        CreateTextColumn("Number");
+        CreateTextColumn("Year");
+        CreateTextColumn("Semester");
+        CreateTextColumn("Grade");
+
+        CreateButtonColumn("Edit");
+        CreateButtonColumn("Delete");
+        dataGrid.CellClick += dataGrid_CellClick;
+
+        // replace the print preview's print button with one that opens a printer selection dialog
+        ToolStrip printPreviewDialogToolStrip = (ToolStrip)printPreviewDialog.Controls[1];
+        ToolStripButton printDialogButton = new();
+        printDialogButton.Image = printPreviewDialogToolStrip.ImageList?.Images[0];
+        printDialogButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+        printDialogButton.Click += printPreviewDialog_PrintClick;
+        printPreviewDialogToolStrip.Items.RemoveAt(0);
+        printPreviewDialogToolStrip.Items.Insert(0, printDialogButton);
+    }
+
     public static void DisplayError(string text)
     {
         MessageBox.Show(ActiveForm, text, @"ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -298,22 +323,6 @@ public partial class MainForm : Form
         }
     }
 
-    public MainForm()
-    {
-        InitializeComponent();
-
-        CreateTextColumn("CRN");
-        CreateTextColumn("Prefix");
-        CreateTextColumn("Number");
-        CreateTextColumn("Year");
-        CreateTextColumn("Semester");
-        CreateTextColumn("Grade");
-
-        CreateButtonColumn("Edit");
-        CreateButtonColumn("Delete");
-        dataGrid.CellClick += dataGrid_CellClick;
-    }
-
     private void CreateTextColumn(string headerText)
     {
         DataGridViewTextBoxColumn column = new();
@@ -457,7 +466,7 @@ public partial class MainForm : Form
         printButton.Enabled = true;
     }
 
-    private StreamReader _printStream;
+    private StreamReader? _printStream;
 
     private readonly Font[] _printFonts =
     [
@@ -577,6 +586,18 @@ public partial class MainForm : Form
         }
     }
 
+    private void printPreviewDialog_PrintClick(object? sender, EventArgs e)
+    {
+        // reset _printStream to the beginning, because printPreviewDialog will read it to the end
+        _printStream!.BaseStream.Position = 0;
+        _printStream.DiscardBufferedData();
+
+        if (printDialog.ShowDialog() == DialogResult.OK)
+        {
+            printDocument.Print();
+        }
+    }
+
     private void printDocument_PrintPage(object sender, PrintPageEventArgs e)
     {
         Rectangle pageRectangle = e.MarginBounds;
@@ -587,7 +608,7 @@ public partial class MainForm : Form
 
         string? line;
         float currentHeight = 0;
-        while ((line = _printStream.ReadLine()) is not null)
+        while ((line = _printStream!.ReadLine()) is not null)
         {
             int fontIndex = 0;
             int parseFontStart = line.IndexOf('{');

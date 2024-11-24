@@ -42,6 +42,7 @@ partial class MainForm
         printButton = new System.Windows.Forms.Button();
         printPreviewDialog = new System.Windows.Forms.PrintPreviewDialog();
         printDocument = new System.Drawing.Printing.PrintDocument();
+        printDialog = new System.Windows.Forms.PrintDialog();
         ((System.ComponentModel.ISupportInitialize)dataGrid).BeginInit();
         SuspendLayout();
         // 
@@ -184,6 +185,10 @@ partial class MainForm
         printDocument.DocumentName = "Transcript";
         printDocument.PrintPage += printDocument_PrintPage;
         // 
+        // printDialog
+        // 
+        printDialog.Document = printDocument;
+        // 
         // MainForm
         // 
         AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -204,6 +209,8 @@ partial class MainForm
         ResumeLayout(false);
         PerformLayout();
     }
+
+    private System.Windows.Forms.PrintDialog printDialog;
 
     private System.Drawing.Printing.PrintDocument printDocument;
 
