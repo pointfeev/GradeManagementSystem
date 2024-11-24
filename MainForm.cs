@@ -287,7 +287,11 @@ public partial class MainForm : Form
         }
 
         resultsLabel.Text = $@"Selected {(student.Existing ? "existing" : "new")} student #{student.ID}" +
-                            $@"{(student.Name is not null ? $" ({student.Name})" : "")}";
+                            (student.GPA is not null
+                                ? $@" ({(student.Name is not null
+                                    ? $"{student.Name}, "
+                                    : string.Empty)}GPA: {student.GPA:0.00})"
+                                : string.Empty);
     }
 
     private async void importButton_Click(object sender, EventArgs e)
