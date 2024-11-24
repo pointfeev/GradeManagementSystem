@@ -126,7 +126,7 @@ public class Student
 
         Existing = true;
 
-        return Grades.Aggregate(true, (current, grade) => current && grade.Commit());
+        return Grades.All(grade => grade.Commit());
     }
 
     /// <summary>
