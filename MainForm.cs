@@ -450,6 +450,12 @@ public partial class MainForm : Form
         CreateRow(grade);
     }
 
+    private void printButton_Click(object sender, EventArgs e)
+    {
+        // TODO
+        throw new NotImplementedException();
+    }
+
     private async void dataGrid_CellClick(object? sender, DataGridViewCellEventArgs e)
     {
         if (dataGrid.Tag is not Student student || e.RowIndex < 0)

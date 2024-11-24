@@ -38,6 +38,7 @@ partial class MainForm
         resultsLabel = new System.Windows.Forms.Label();
         addButton = new System.Windows.Forms.Button();
         importDialog = new System.Windows.Forms.FolderBrowserDialog();
+        printButton = new System.Windows.Forms.Button();
         ((System.ComponentModel.ISupportInitialize)dataGrid).BeginInit();
         SuspendLayout();
         // 
@@ -140,7 +141,7 @@ partial class MainForm
         addButton.AutoSize = true;
         addButton.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
         addButton.Enabled = false;
-        addButton.Location = new System.Drawing.Point(493, 45);
+        addButton.Location = new System.Drawing.Point(385, 45);
         addButton.Name = "addButton";
         addButton.Padding = new System.Windows.Forms.Padding(3, 1, 3, 1);
         addButton.Size = new System.Drawing.Size(79, 27);
@@ -149,12 +150,28 @@ partial class MainForm
         addButton.UseVisualStyleBackColor = true;
         addButton.Click += addButton_Click;
         // 
+        // printButton
+        // 
+        printButton.Anchor = ((System.Windows.Forms.AnchorStyles)(System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right));
+        printButton.AutoSize = true;
+        printButton.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+        printButton.Enabled = false;
+        printButton.Location = new System.Drawing.Point(470, 45);
+        printButton.Name = "printButton";
+        printButton.Padding = new System.Windows.Forms.Padding(3, 1, 3, 1);
+        printButton.Size = new System.Drawing.Size(102, 27);
+        printButton.TabIndex = 6;
+        printButton.Text = "Print Transcript";
+        printButton.UseVisualStyleBackColor = true;
+        printButton.Click += printButton_Click;
+        // 
         // MainForm
         // 
         AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
         AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
         BackColor = System.Drawing.SystemColors.Control;
         ClientSize = new System.Drawing.Size(584, 461);
+        Controls.Add(printButton);
         Controls.Add(addButton);
         Controls.Add(resultsLabel);
         Controls.Add(dataGrid);
@@ -162,12 +179,14 @@ partial class MainForm
         Controls.Add(importButton);
         Controls.Add(searchBox);
         DoubleBuffered = true;
-        MinimumSize = new System.Drawing.Size(320, 180);
+        MinimumSize = new System.Drawing.Size(360, 180);
         Text = "Grade Management System";
         ((System.ComponentModel.ISupportInitialize)dataGrid).EndInit();
         ResumeLayout(false);
         PerformLayout();
     }
+
+    private System.Windows.Forms.Button printButton;
 
     private System.Windows.Forms.FolderBrowserDialog importDialog;
 
