@@ -2,109 +2,16 @@
 
 namespace GradeManagementSystem;
 
-public class Course
+public static class Course
 {
-    public const string Table = "zma_course";
-
-    private int _crn;
-
-    public required int CRN
-    {
-        get => _crn;
-        set
-        {
-            if (_crn == value)
-            {
-                return;
-            }
-
-            _crn = value;
-            NeedsCommit = true;
-        }
-    }
-
-    private string _prefix;
-
-    public required string Prefix
-    {
-        get => _prefix;
-        set
-        {
-            if (_prefix == value)
-            {
-                return;
-            }
-
-            _prefix = value;
-            NeedsCommit = true;
-        }
-    }
-
-    private int _number;
-
-    public required int Number
-    {
-        get => _number;
-        set
-        {
-            if (_number == value)
-            {
-                return;
-            }
-
-            _number = value;
-            NeedsCommit = true;
-        }
-    }
-
-    private int _year;
-
-    public required int Year
-    {
-        get => _year;
-        set
-        {
-            if (_year == value)
-            {
-                return;
-            }
-
-            _year = value;
-            NeedsCommit = true;
-        }
-    }
-
-    private string _semester;
-
-    public required string Semester
-    {
-        get => _semester;
-        set
-        {
-            if (_semester == value)
-            {
-                return;
-            }
-
-            _semester = value;
-            NeedsCommit = true;
-        }
-    }
-
-    public bool NeedsCommit;
+    public const string Table = "z_course";
 
     /// <summary>
-    ///     Commits the current <see cref="GradeManagementSystem.Course" /> instance data to the database,
-    ///     replacing the existing row if it exists.
+    ///     Commits the course data to the database, replacing the existing row if it exists.
     /// </summary>
     /// <returns>Boolean indicating if the commit was successful</returns>
-    public bool Commit()
+    public static bool Commit(int crn, string prefix, int number, int year, string semester)
     {
-        if (!NeedsCommit)
-        {
-            return true;
-        }
-
         MySqlCommand command = new($"""
                                     INSERT INTO {Table} (crn, prefix, number, year, semester)
                                     VALUES (@crn, @prefix, @number, @year, @semester)
@@ -114,31 +21,24 @@ public class Course
                                         year = VALUES(year),
                                         semester = VALUES(semester);
                                     """);
-        command.Parameters.AddWithValue("@crn", CRN);
-        command.Parameters.AddWithValue("@prefix", Prefix);
-        command.Parameters.AddWithValue("@number", Number);
-        command.Parameters.AddWithValue("@year", Year);
-        command.Parameters.AddWithValue("@semester", Semester);
-        if (!command.Execute())
-        {
-            return false;
-        }
-
-        NeedsCommit = false;
-        return true;
+        command.Parameters.AddWithValue("@crn", crn);
+        command.Parameters.AddWithValue("@prefix", prefix);
+        command.Parameters.AddWithValue("@number", number);
+        command.Parameters.AddWithValue("@year", year);
+        command.Parameters.AddWithValue("@semester", semester);
+        return command.Execute();
     }
 
     /// <summary>
-    ///     Deletes the current <see cref="GradeManagementSystem.Course" /> instance
-    ///     <see cref="GradeManagementSystem.Course.CRN" /> from the database if it exists.
-    ///     Due to foreign key constraints, will only delete if no <see cref="GradeManagementSystem.Grade" /> instances
-    ///     reference the <see cref="GradeManagementSystem.Course.CRN" /> in the database; this is intended behavior.
+    ///     Deletes the course from the database if it exists.
+    ///     Due to foreign key constraints, will only delete if no grades
+    ///     reference the CRN in the database; this is intended behavior.
     /// </summary>
     /// <returns>Boolean indicating if the deletion was successful</returns>
-    public bool Delete()
+    public static bool Delete(int crn)
     {
         MySqlCommand command = new($"DELETE FROM {Table} WHERE crn = @crn;");
-        command.Parameters.AddWithValue("@crn", CRN);
+        command.Parameters.AddWithValue("@crn", crn);
         return command.Execute(displayExecutionErrors: false);
     }
 }

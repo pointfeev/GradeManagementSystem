@@ -2,68 +2,23 @@
 
 namespace GradeManagementSystem;
 
-public class Grade
+public static class Grade
 {
-    public const string Table = "zma_grade";
+    public const string Table = "z_grade";
 
     public static readonly HashSet<char> ValidLetters = ['A', 'B', 'C', 'D', 'F'];
 
     /// <summary>
-    ///     <see cref="GradeManagementSystem.Grade.ID" /> is auto-incremented in the database,
-    ///     so this field is not required unless editing or deleting.
-    /// </summary>
-    public int ID;
-
-    private readonly Student _student = null!;
-
-    public required Student Student
-    {
-        get => _student;
-        init
-        {
-            _student = value;
-            _student.Grades.Add(this);
-        }
-    }
-
-    private char _letter;
-
-    public required char Letter
-    {
-        get => _letter;
-        set
-        {
-            if (_letter == value)
-            {
-                return;
-            }
-
-            _letter = value;
-            NeedsCommit = true;
-        }
-    }
-
-    public required Course Course;
-
-    public bool NeedsCommit;
-
-    /// <summary>
-    ///     Commits the current <see cref="GradeManagementSystem.Grade" /> instance data to the database,
-    ///     replacing the existing row if it exists.
-    ///     Also commits the linked <see cref="GradeManagementSystem.Grade.Course" /> instance,
-    ///     see <see cref="GradeManagementSystem.Course.Commit" />.
+    ///     Commits the grade data to the database, replacing the existing row if it exists.
+    ///     Also commits the passed course data, see <see cref="GradeManagementSystem.Course.Commit" />.
     /// </summary>
     /// <returns>Boolean indicating if all the commits were successful</returns>
-    public bool Commit()
+    public static bool Commit(int? id, char letter,
+        (int crn, string prefix, int number, int year, string semester) course)
     {
-        if (!Course.Commit())
+        if (!Course.Commit(course.crn, course.prefix, course.number, course.year, course.semester))
         {
             return false;
-        }
-
-        if (!NeedsCommit)
-        {
-            return true;
         }
 
         MySqlCommand command = new($"""
@@ -74,40 +29,29 @@ public class Grade
                                         letter = VALUES(letter),
                                         course_crn = VALUES(course_crn);
                                     """);
-        command.Parameters.AddWithValue("@id", ID);
+        command.Parameters.AddWithValue("@id", id);
         command.Parameters.AddWithValue("@student_id", Student.ID);
-        command.Parameters.AddWithValue("@letter", Letter);
-        command.Parameters.AddWithValue("@course_crn", Course.CRN);
-        if (!command.Execute())
-        {
-            return false;
-        }
-
-        ID = (int)command.LastInsertedId;
-
-        NeedsCommit = false;
-        return true;
+        command.Parameters.AddWithValue("@letter", letter);
+        command.Parameters.AddWithValue("@course_crn", course.crn);
+        return command.Execute();
     }
 
     /// <summary>
-    ///     Deletes the current <see cref="GradeManagementSystem.Grade" /> instance
-    ///     <see cref="GradeManagementSystem.Grade.ID" /> from the database if it exists.
-    ///     Also deletes the linked <see cref="GradeManagementSystem.Course" /> instance,
-    ///     see <see cref="GradeManagementSystem.Course.Delete" />.
+    ///     Deletes the grade from the database if it exists.
+    ///     Also deletes the passed course, see <see cref="GradeManagementSystem.Course.Delete" />.
     /// </summary>
     /// <returns>Boolean indicating if all the deletions were successful</returns>
-    public bool Delete()
+    public static bool Delete(int id, int crn)
     {
         MySqlCommand command = new($"DELETE FROM {Table} WHERE id = @id;");
-        command.Parameters.AddWithValue("@id", ID);
+        command.Parameters.AddWithValue("@id", id);
         if (!command.Execute())
         {
             return false;
         }
 
-        Course.Delete();
+        Course.Delete(crn);
 
-        Student.Grades.Remove(this);
         return true;
     }
 }
