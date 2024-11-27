@@ -47,7 +47,7 @@ public partial class MainForm : Form
 
     private static void ImportGrades(string folder)
     {
-        string folderName = Path.GetFileName(folder);
+        /*string folderName = Path.GetFileName(folder);
         string[] folderParams = folderName.Split(' ');
         if (folderParams.Length < 1 || folderParams[0] != "Grades")
         {
@@ -275,27 +275,29 @@ public partial class MainForm : Form
             {
                 return;
             }
-        }
+        }*/
     }
 
-    private void UpdateResultsLabel(Student? student = null)
+    private void UpdateResultsLabel()
     {
-        if (student is null)
+        if (Student.ID is null)
         {
             resultsLabel.Text = @"No student selected.";
             return;
         }
 
-        resultsLabel.Text = $@"Selected {(student.Existing ? "existing" : "new")} student #{student.ID}" +
-                            (student.GPA is not null
-                                ? $@" ({(student.Name is not null
-                                    ? $"{student.Name}, "
-                                    : string.Empty)}GPA: {student.GPA:0.00})"
+        resultsLabel.Text = $@"Selected {(Student.Existing ? "existing" : "new")} student #{Student.ID}" +
+                            (Student.GPA is not null
+                                ? $@" ({(Student.Name is not null
+                                    ? $"{Student.Name}, "
+                                    : string.Empty)}GPA: {Student.GPA:0.00})"
                                 : string.Empty);
     }
 
     private async void importButton_Click(object sender, EventArgs e)
     {
+        throw new NotImplementedException();
+
         importDialog.InitialDirectory = Directory.GetCurrentDirectory();
         if (importDialog.ShowDialog() != DialogResult.OK)
         {
@@ -314,8 +316,7 @@ public partial class MainForm : Form
         dataGrid.Enabled = false;
         dataGrid.Rows.Clear();
 
-        bool search = dataGrid.Tag is Student student && ValidateStudentID(out int id) && id == student.ID;
-        dataGrid.Tag = null;
+        bool search = Student.ID is not null && ValidateStudentID(out int id) && id == Student.ID;
 
         await Task.Run(() => ImportGrades(importDialog.SelectedPath));
 
@@ -353,23 +354,34 @@ public partial class MainForm : Form
 
     private bool ValidateStudentID(out int id) => int.TryParse(searchBox.Text.Trim(), out id) && id > 0;
 
-    private void UpdateRow(DataGridViewRow row, Grade grade)
+    private void UpdateRow(DataGridViewRow row,
+        (int? id, char letter, (int crn, string prefix, int number, int year, string semester) course) grade)
     {
-        row.Cells[dataGrid.Columns["CRN"]!.Index].Value = grade.Course.CRN;
-        row.Cells[dataGrid.Columns["Prefix"]!.Index].Value = grade.Course.Prefix;
-        row.Cells[dataGrid.Columns["Number"]!.Index].Value = grade.Course.Number;
-        row.Cells[dataGrid.Columns["Year"]!.Index].Value = grade.Course.Year;
-        row.Cells[dataGrid.Columns["Semester"]!.Index].Value = grade.Course.Semester;
-        row.Cells[dataGrid.Columns["Grade"]!.Index].Value = grade.Letter;
+        row.Cells[dataGrid.Columns["CRN"]!.Index].Value = grade.course.crn;
+        row.Cells[dataGrid.Columns["Prefix"]!.Index].Value = grade.course.prefix;
+        row.Cells[dataGrid.Columns["Number"]!.Index].Value = grade.course.number;
+        row.Cells[dataGrid.Columns["Year"]!.Index].Value = grade.course.year;
+        row.Cells[dataGrid.Columns["Semester"]!.Index].Value = grade.course.semester;
+        row.Cells[dataGrid.Columns["Grade"]!.Index].Value = grade.letter;
     }
 
-    private void CreateRow(Grade grade)
+    private void CreateRow(
+        (int? id, char letter, (int crn, string prefix, int number, int year, string semester) course) grade)
     {
         DataGridViewRow row = new();
-        row.Tag = grade;
         row.CreateCells(dataGrid);
         UpdateRow(row, grade);
         dataGrid.Rows.Add(row);
+    }
+
+    private void UpdateRows()
+    {
+        dataGrid.Rows.Clear();
+        foreach ((int? id, char letter, (int crn, string prefix, int number, int year, string semester) course)
+                 grade in Student.Grades)
+        {
+            CreateRow(grade);
+        }
     }
 
     private void Search()
@@ -387,17 +399,13 @@ public partial class MainForm : Form
         dataGrid.Enabled = false;
         dataGrid.Rows.Clear();
 
-        Student student = new(id);
-        dataGrid.Tag = student;
-        foreach (Grade grade in student.Grades)
-        {
-            CreateRow(grade);
-        }
+        Student.Get(id);
+        UpdateRows();
 
         searchButton.Enabled = true;
-        UpdateResultsLabel(student);
+        UpdateResultsLabel();
         addButton.Enabled = true;
-        printButton.Enabled = student.Grades.Count > 0;
+        printButton.Enabled = Student.Grades.Count > 0;
         dataGrid.Enabled = true;
     }
 
@@ -412,7 +420,7 @@ public partial class MainForm : Form
 
         searchButton.Enabled = true;
 
-        if (dataGrid.Tag is Student student && student.ID == id)
+        if (Student.ID is not null && Student.ID == id)
         {
             searchButton.Text = @"Refresh";
             return;
@@ -436,7 +444,7 @@ public partial class MainForm : Form
 
     private async void addButton_Click(object sender, EventArgs e)
     {
-        if (dataGrid.Tag is not Student student)
+        if (Student.ID is null)
         {
             return;
         }
@@ -448,28 +456,23 @@ public partial class MainForm : Form
             return;
         }
 
-        Grade grade = new()
-        {
-            Student = student,
-            Letter = form.Grade[0],
-            Course = new()
-            {
-                CRN = int.Parse(form.CRN),
-                Prefix = form.Prefix,
-                Number = int.Parse(form.Number),
-                Year = int.Parse(form.Year),
-                Semester = form.Semester
-            }
-        };
+        (int? id, char letter, (int crn, string prefix, int number, int year, string semester) course)
+            grade = (null, form.Grade[0],
+                (int.Parse(form.CRN),
+                    form.Prefix,
+                    int.Parse(form.Number),
+                    int.Parse(form.Year),
+                    form.Semester));
+        Student.Grades.Add(grade);
 
-        await Task.Run(student.CalculateGPA);
-        if (!await Task.Run(student.Commit))
+        await Task.Run(Student.CalculateGPA);
+        if (!await Task.Run(Student.Commit))
         {
             return;
         }
 
-        UpdateResultsLabel(student);
-        CreateRow(grade);
+        UpdateRows();
+        UpdateResultsLabel();
         printButton.Enabled = true;
     }
 
@@ -483,7 +486,7 @@ public partial class MainForm : Form
 
     private void printButton_Click(object sender, EventArgs e)
     {
-        if (dataGrid.Tag is not Student student)
+        if (Student.ID is null)
         {
             return;
         }
@@ -491,9 +494,9 @@ public partial class MainForm : Form
         MemoryStream stream = new();
         using StreamWriter writer = new(stream);
 
-        writer.WriteLine($"Student #{student.ID}");
-        writer.WriteLine($"{student.Name}");
-        writer.WriteLine($"GPA: {student.GPA:0.00}");
+        writer.WriteLine($"Student #{Student.ID}");
+        writer.WriteLine($"{Student.Name}");
+        writer.WriteLine($"GPA: {Student.GPA:0.00}");
 
         List<List<string>> rows =
         [
@@ -506,16 +509,16 @@ public partial class MainForm : Form
                 "Grade"
             ]
         ];
-        rows.AddRange(from grade in student.Grades
-            let course = grade.Course
+        rows.AddRange(from grade in Student.Grades
+            let course = grade.course
             select (List<string>)
             [
-                course.CRN.ToString(),
-                course.Prefix,
-                course.Number.ToString(),
-                course.Year.ToString(),
-                course.Semester,
-                grade.Letter.ToString()
+                course.crn.ToString(),
+                course.prefix,
+                course.number.ToString(),
+                course.year.ToString(),
+                course.semester,
+                grade.letter.ToString()
             ]);
 
         Dictionary<int, int> columnLength = new();
@@ -644,79 +647,73 @@ public partial class MainForm : Form
 
     private async void dataGrid_CellClick(object? sender, DataGridViewCellEventArgs e)
     {
-        if (dataGrid.Tag is not Student student || e.RowIndex < 0)
+        if (Student.ID is null || e.RowIndex < 0)
         {
             return;
         }
 
-        DataGridViewRow row = dataGrid.Rows[e.RowIndex];
-        if (row.Tag is not Grade grade)
-        {
-            dataGrid.Rows.RemoveAt(e.RowIndex);
-            return;
-        }
+        int gradeIndex = e.RowIndex;
+        DataGridViewRow row = dataGrid.Rows[gradeIndex];
+        (int? id, char letter, (int crn, string prefix, int number, int year, string semester) course)
+            grade = Student.Grades[gradeIndex];
 
         if (e.ColumnIndex == dataGrid.Columns["Edit"]!.Index)
         {
             AddEditForm form = new();
             form.Text = @"Edit";
 
-            Course course = grade.Course;
-            form.CRN = course.CRN.ToString();
-            form.Prefix = course.Prefix;
-            form.Number = course.Number.ToString();
-            form.Year = course.Year.ToString();
-            form.Semester = course.Semester;
-            form.Grade = grade.Letter.ToString();
+            form.CRN = grade.course.crn.ToString();
+            form.Prefix = grade.course.prefix;
+            form.Number = grade.course.number.ToString();
+            form.Year = grade.course.year.ToString();
+            form.Semester = grade.course.semester;
+            form.Grade = grade.letter.ToString();
             if (form.ShowDialog() != DialogResult.OK)
             {
                 return;
             }
 
-            course.CRN = int.Parse(form.CRN);
-            course.Prefix = form.Prefix;
-            course.Number = int.Parse(form.Number);
-            course.Year = int.Parse(form.Year);
-            course.Semester = form.Semester;
-            grade.Letter = form.Grade[0];
-            await Task.Run(student.CalculateGPA);
-            if (!await Task.Run(student.Commit))
+            (int? id, char letter, (int crn, string prefix, int number, int year, string semester) course)
+                updatedGrade = (grade.id, form.Grade[0],
+                    (int.Parse(form.CRN),
+                        form.Prefix,
+                        int.Parse(form.Number),
+                        int.Parse(form.Year),
+                        form.Semester));
+            Student.Grades[gradeIndex] = updatedGrade;
+            await Task.Run(Student.CalculateGPA);
+            if (!await Task.Run(Student.Commit))
             {
                 return;
             }
 
-            UpdateResultsLabel(student);
-            UpdateRow(row, grade);
+            UpdateResultsLabel();
+            UpdateRow(row, updatedGrade);
         }
         else if (e.ColumnIndex == dataGrid.Columns["Delete"]!.Index)
         {
-            if (!await Task.Run(grade.Delete))
+            if (grade.id is { } gradeId && !await Task.Run(() => Grade.Delete(gradeId, grade.course.crn)))
             {
                 return;
             }
 
-            if (await Task.Run(student.Delete))
+            if (await Task.Run(Student.Delete))
             {
-                student.Name = null;
-                student.GPA = null;
-                student.NeedsCommit = false;
-                student.Existing = false;
-                student.Grades.Clear();
-
-                UpdateResultsLabel(student);
+                UpdateResultsLabel();
                 dataGrid.Rows.Clear();
                 printButton.Enabled = false;
                 return;
             }
 
-            await Task.Run(student.CalculateGPA);
-            if (!await Task.Run(student.Commit))
+            await Task.Run(Student.GetGrades);
+            await Task.Run(Student.CalculateGPA);
+            if (!await Task.Run(Student.Commit))
             {
                 return;
             }
 
-            dataGrid.Rows.RemoveAt(e.RowIndex);
-            printButton.Enabled = student.Grades.Count > 0;
+            UpdateRows();
+            printButton.Enabled = Student.Grades.Count > 0;
         }
     }
 }

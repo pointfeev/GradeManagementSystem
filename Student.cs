@@ -3,68 +3,37 @@ using MySql.Data.MySqlClient;
 
 namespace GradeManagementSystem;
 
-public class Student
+public static class Student
 {
-    public const string Table = "zma_student";
+    public const string Table = "z_student";
 
-    public readonly int ID;
+    public static int? ID;
+    public static string? Name;
+    public static double? GPA;
 
-    private string? _name;
-
-    public string? Name
-    {
-        get => _name;
-        set
-        {
-            if (_name == value)
-            {
-                return;
-            }
-
-            _name = value;
-            NeedsCommit = true;
-        }
-    }
-
-    private double? _gpa;
-
-    public double? GPA
-    {
-        get => _gpa;
-        set
-        {
-            if (_gpa == value)
-            {
-                return;
-            }
-
-            _gpa = value;
-            NeedsCommit = true;
-        }
-    }
-
-    public bool NeedsCommit;
-
-    public readonly List<Grade> Grades = [];
+    public static readonly List<(int? id, char letter,
+        (int crn, string prefix, int number, int year, string semester) course)> Grades = [];
 
     /// <summary>
-    ///     Does the current <see cref="GradeManagementSystem.Student" /> instance
-    ///     <see cref="GradeManagementSystem.Student.ID" /> exist in the database.
+    ///     Does the student exist in the database.
     /// </summary>
-    public bool Existing;
+    public static bool Existing;
 
     /// <summary>
-    ///     Creates a new <see cref="GradeManagementSystem.Student" /> instance
-    ///     from the passed <see cref="GradeManagementSystem.Student.ID" />,
+    ///     Populates <see cref="GradeManagementSystem.Student.ID" /> with the passed ID,
     ///     and populates the <see cref="GradeManagementSystem.Student.Name" />,
     ///     <see cref="GradeManagementSystem.Student.GPA" /> and <see cref="GradeManagementSystem.Student.Grades" />
     ///     fields from the database if the student exists in the database.
     ///     If the student exists in the database, <see cref="GradeManagementSystem.Student.Existing" />
     ///     will be set to <c>true</c>, otherwise it will be <c>false</c>.
     /// </summary>
-    public Student(int id)
+    public static void Get(int id)
     {
         ID = id;
+        Name = null;
+        GPA = null;
+        Existing = false;
+        Grades.Clear();
 
         MySqlCommand command = new($@"SELECT name, gpa FROM {Table} WHERE id = @id;");
         command.Parameters.AddWithValue("@id", ID);
@@ -85,7 +54,6 @@ public class Student
                     GPA = reader.GetDouble("gpa");
                 }
 
-                NeedsCommit = false;
                 Existing = true;
             }) || !Existing)
         {
@@ -96,59 +64,68 @@ public class Student
     }
 
     /// <summary>
-    ///     Commits the current <see cref="GradeManagementSystem.Student" /> instance data to the database,
-    ///     replacing the existing row if it exists.
-    ///     Also commits the linked <see cref="GradeManagementSystem.Student.Grades" /> instances,
-    ///     see <see cref="GradeManagementSystem.Grade.Commit" />.
+    ///     Commits the student data to the database, replacing the existing row if it exists.
+    ///     Also commits the grade data, see <see cref="GradeManagementSystem.Grade.Commit" />.
     /// </summary>
     /// <returns>Boolean indicating if all the commits were successful</returns>
-    public bool Commit()
+    public static bool Commit()
     {
-        if (NeedsCommit)
+        MySqlCommand command = new($"""
+                                    INSERT INTO {Table} (id, name, gpa)
+                                    VALUES (@id, @name, @gpa)
+                                    ON DUPLICATE KEY UPDATE
+                                        name = VALUES(name),
+                                        gpa = VALUES(gpa);
+                                    """);
+        command.Parameters.AddWithValue("@id", ID);
+        command.Parameters.AddWithValue("@name", Name);
+        command.Parameters.AddWithValue("@gpa", GPA);
+        if (!command.Execute())
         {
-            MySqlCommand command = new($"""
-                                        INSERT INTO {Table} (id, name, gpa)
-                                        VALUES (@id, @name, @gpa)
-                                        ON DUPLICATE KEY UPDATE
-                                            name = VALUES(name),
-                                            gpa = VALUES(gpa);
-                                        """);
-            command.Parameters.AddWithValue("@id", ID);
-            command.Parameters.AddWithValue("@name", Name);
-            command.Parameters.AddWithValue("@gpa", GPA);
-            if (!command.Execute())
-            {
-                return false;
-            }
-
-            NeedsCommit = false;
+            return false;
         }
 
         Existing = true;
 
-        return Grades.All(grade => grade.Commit());
+        if (!Grades.All(grade => Grade.Commit(grade.id, grade.letter, grade.course)))
+        {
+            return false;
+        }
+
+        GetGrades();
+        return true;
     }
 
     /// <summary>
-    ///     Deletes the current <see cref="GradeManagementSystem.Student" /> instance
-    ///     <see cref="GradeManagementSystem.Student.ID" /> from the database if it exists.
-    ///     Due to foreign key constraints, will only delete if no <see cref="GradeManagementSystem.Grade" /> instances
-    ///     reference the <see cref="GradeManagementSystem.Student.ID" /> in the database; this is intended behavior.
+    ///     Deletes the student from the database if it exists.
+    ///     Due to foreign key constraints, will only delete if grades
+    ///     reference the ID in the database; this is intended behavior.
     /// </summary>
     /// <returns>Boolean indicating if the deletion was successful</returns>
-    public bool Delete()
+    public static bool Delete()
     {
         MySqlCommand command = new($"DELETE FROM {Table} WHERE id = @id;");
         command.Parameters.AddWithValue("@id", ID);
-        return command.Execute(displayExecutionErrors: false);
+        if (!command.Execute(displayExecutionErrors: false))
+        {
+            return false;
+        }
+
+        Name = null;
+        GPA = null;
+        Existing = false;
+        Grades.Clear();
+        return true;
     }
 
     /// <summary>
     ///     Populates the <see cref="GradeManagementSystem.Student.Grades" /> list from the database.
     /// </summary>
     /// <returns>Boolean indicating if the get was successful</returns>
-    private bool GetGrades()
+    public static bool GetGrades()
     {
+        Grades.Clear();
+
         MySqlCommand command = new($"""
                                     SELECT id, letter, crn, prefix, number, year, semester
                                     FROM {Grade.Table} JOIN {Course.Table} ON course_crn = crn
@@ -159,22 +136,13 @@ public class Student
         {
             while (reader.Read())
             {
-                _ = new Grade
-                {
-                    Student = this,
-                    ID = reader.GetInt32("id"),
-                    Letter = reader.GetChar("letter"),
-                    Course = new()
-                    {
-                        CRN = reader.GetInt32("crn"),
-                        Prefix = reader.GetString("prefix"),
-                        Number = reader.GetInt32("number"),
-                        Year = reader.GetInt32("year"),
-                        Semester = reader.GetString("semester"),
-                        NeedsCommit = false
-                    },
-                    NeedsCommit = false
-                };
+                Grades.Add((reader.GetInt32("id"),
+                    reader.GetChar("letter"),
+                    (reader.GetInt32("crn"),
+                        reader.GetString("prefix"),
+                        reader.GetInt32("number"),
+                        reader.GetInt32("year"),
+                        reader.GetString("semester"))));
             }
         });
     }
@@ -183,13 +151,13 @@ public class Student
     ///     Calculates the grade point average from the current <see cref="GradeManagementSystem.Student.Grades" /> list
     ///     and sets <see cref="GradeManagementSystem.Student.GPA" /> to the result.
     /// </summary>
-    public void CalculateGPA()
+    public static void CalculateGPA()
     {
         double gradePoints = 0;
         int gradeCount = 0;
-        foreach (Grade grade in Grades)
+        foreach ((_, char letter, _) in Grades)
         {
-            gradePoints += grade.Letter switch
+            gradePoints += letter switch
             {
                 'A' => 4.0,
                 'B' => 3.0,
