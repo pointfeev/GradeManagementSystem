@@ -11,7 +11,7 @@ public static class Student
     public static string? Name;
     public static double? GPA;
 
-    public static readonly List<(int? id, char letter,
+    public static List<(int? id, char letter,
         (int crn, string prefix, int number, int year, string semester) course)> Grades = [];
 
     /// <summary>
@@ -27,13 +27,18 @@ public static class Student
     ///     If the student exists in the database, <see cref="GradeManagementSystem.Student.Existing" />
     ///     will be set to <c>true</c>, otherwise it will be <c>false</c>.
     /// </summary>
-    public static void Get(int id)
+    public static void Initialize(int? id, bool getData = true)
     {
         ID = id;
         Name = null;
         GPA = null;
         Existing = false;
         Grades.Clear();
+
+        if (!getData)
+        {
+            return;
+        }
 
         MySqlCommand command = new($@"SELECT name, gpa FROM {Table} WHERE id = @id;");
         command.Parameters.AddWithValue("@id", ID);
@@ -68,7 +73,7 @@ public static class Student
     ///     Also commits the grade data, see <see cref="GradeManagementSystem.Grade.Commit" />.
     /// </summary>
     /// <returns>Boolean indicating if all the commits were successful</returns>
-    public static bool Commit()
+    public static bool Commit(bool refreshData = true)
     {
         MySqlCommand command = new($"""
                                     INSERT INTO {Table} (id, name, gpa)
@@ -90,6 +95,11 @@ public static class Student
         if (!Grades.All(grade => Grade.Commit(grade.id, grade.letter, grade.course)))
         {
             return false;
+        }
+
+        if (!refreshData)
+        {
+            return true;
         }
 
         GetGrades();

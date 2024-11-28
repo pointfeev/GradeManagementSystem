@@ -47,7 +47,7 @@ public partial class MainForm : Form
 
     private static void ImportGrades(string folder)
     {
-        /*string folderName = Path.GetFileName(folder);
+        string folderName = Path.GetFileName(folder);
         string[] folderParams = folderName.Split(' ');
         if (folderParams.Length < 1 || folderParams[0] != "Grades")
         {
@@ -69,7 +69,9 @@ public partial class MainForm : Form
 
         string semester = folderParams[2];
 
-        Dictionary<int, Student> importedStudents = [];
+        Dictionary<int, (string name, List<(int? id, char letter,
+                (int crn, string prefix, int number, int year, string semester) course)> grades)>
+            importedStudents = [];
 
         foreach (string file in Directory.EnumerateFiles(folder, "*.xlsx"))
         {
@@ -234,48 +236,55 @@ public partial class MainForm : Form
                         return;
                     }
 
-                    if (!importedStudents.TryGetValue(id.Value, out Student? student))
+                    if (!importedStudents.TryGetValue(id.Value,
+                            out (string name, List<(int? id, char letter,
+                                (int crn, string prefix, int number, int year, string semester) course)> grades)
+                            studentData))
                     {
-                        student = new(id.Value)
-                        {
-                            Name = name
-                        };
-                        importedStudents.Add(id.Value, student);
+                        Student.Initialize(id.Value);
+                        studentData = (name, Student.Grades.ToList());
+                        importedStudents.Add(id.Value, studentData);
                     }
 
-                    Grade? grade = student.Grades.Find(grade => grade.Course.CRN == crn);
-                    if (grade is not null)
+                    int gradeIndex = studentData.grades.FindIndex(grade => grade.course.crn == crn);
+                    if (gradeIndex != -1)
                     {
-                        grade.Letter = letterGrade.Value;
+                        (int? id, char letter, (int crn, string prefix, int number, int year, string semester) course)
+                            grade = studentData.grades[gradeIndex];
+                        (int? id, char letter, (int crn, string prefix, int number, int year, string semester) course)
+                            updatedGrade = (grade.id, letterGrade.Value,
+                                (grade.course.crn,
+                                    grade.course.prefix,
+                                    grade.course.number,
+                                    grade.course.year,
+                                    grade.course.semester));
+                        studentData.grades[gradeIndex] = updatedGrade;
                     }
                     else
                     {
-                        _ = new Grade
-                        {
-                            Student = student,
-                            Letter = letterGrade.Value,
-                            Course = new()
-                            {
-                                CRN = crn,
-                                Prefix = prefix,
-                                Number = number,
-                                Year = year,
-                                Semester = semester
-                            }
-                        };
+                        studentData.grades.Add((null, letterGrade.Value, (crn, prefix, number, year, semester)));
                     }
                 }
             }
         }
 
-        foreach ((_, Student student) in importedStudents)
+        foreach (KeyValuePair<int, (string name, List<(int? id, char letter,
+                     (int crn, string prefix, int number, int year, string semester) course)> grades)> entry in
+                 importedStudents)
         {
-            student.CalculateGPA();
-            if (!student.Commit())
+            (string name, List<(int? id, char letter,
+                (int crn, string prefix, int number, int year, string semester) course)> grades) = entry.Value;
+
+            Student.Initialize(entry.Key, false);
+            Student.Name = name;
+            Student.Grades = grades;
+
+            Student.CalculateGPA();
+            if (!Student.Commit(false))
             {
                 return;
             }
-        }*/
+        }
     }
 
     private void UpdateResultsLabel()
@@ -296,8 +305,6 @@ public partial class MainForm : Form
 
     private async void importButton_Click(object sender, EventArgs e)
     {
-        throw new NotImplementedException();
-
         importDialog.InitialDirectory = Directory.GetCurrentDirectory();
         if (importDialog.ShowDialog() != DialogResult.OK)
         {
@@ -316,9 +323,12 @@ public partial class MainForm : Form
         dataGrid.Enabled = false;
         dataGrid.Rows.Clear();
 
-        bool search = Student.ID is not null && ValidateStudentID(out int id) && id == Student.ID;
+        int? studentId = Student.ID;
+        bool search = studentId is not null && ValidateStudentID(out int id) && id == studentId;
 
         await Task.Run(() => ImportGrades(importDialog.SelectedPath));
+
+        Student.Initialize(studentId, false);
 
         searchBox.Enabled = true;
         searchButton.Enabled = true;
@@ -399,7 +409,7 @@ public partial class MainForm : Form
         dataGrid.Enabled = false;
         dataGrid.Rows.Clear();
 
-        Student.Get(id);
+        Student.Initialize(id);
         UpdateRows();
 
         searchButton.Enabled = true;
@@ -466,7 +476,7 @@ public partial class MainForm : Form
         Student.Grades.Add(grade);
 
         await Task.Run(Student.CalculateGPA);
-        if (!await Task.Run(Student.Commit))
+        if (!await Task.Run(() => Student.Commit()))
         {
             return;
         }
@@ -682,7 +692,7 @@ public partial class MainForm : Form
                         form.Semester));
             Student.Grades[gradeIndex] = updatedGrade;
             await Task.Run(Student.CalculateGPA);
-            if (!await Task.Run(Student.Commit))
+            if (!await Task.Run(() => Student.Commit()))
             {
                 return;
             }
@@ -707,7 +717,7 @@ public partial class MainForm : Form
 
             await Task.Run(Student.GetGrades);
             await Task.Run(Student.CalculateGPA);
-            if (!await Task.Run(Student.Commit))
+            if (!await Task.Run(() => Student.Commit()))
             {
                 return;
             }
